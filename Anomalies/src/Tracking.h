@@ -10,8 +10,10 @@
 
 //global definitions...........................................................
 
+//#define TRK_KALMAN_EXAMPLE_ // kalman mouse example 
 typedef cv::Point2f   TrkPoint;
 
+///main class for tracking
 struct TrackingBase{
   TrackingBase()  {}
   ~TrackingBase() {};
@@ -24,10 +26,10 @@ struct TrackingBase{
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
+///tracking class using opencv kalman filter
 struct TrackingKalman : public TrackingBase {
 
-  cv::KalmanFilter KF;
+  cv::KalmanFilter  KF_;
 
 public:
 
@@ -38,6 +40,13 @@ public:
   virtual TrkPoint  estimate(TrkPoint &);
 
 };
+
+#ifdef  TRK_KALMAN_EXAMPLE_
+  void    trk_kalmanMouseExample();
+#endif 
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 #endif //_TRACKING_
 

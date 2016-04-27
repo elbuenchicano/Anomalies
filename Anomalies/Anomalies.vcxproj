@@ -147,8 +147,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AnomalieControl.h" />
+    <ClInclude Include="src\CUtil.h" />
+    <ClInclude Include="src\dirent.h" />
+    <ClInclude Include="src\fmSequence.h" />
     <ClInclude Include="src\RelationGraph.h" />
     <ClInclude Include="src\Tracking.h" />
+    <ClInclude Include="src\Tracklet.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -157,6 +161,7 @@
     <ClCompile Include="src\AnomalieControl.cpp" />
     <ClCompile Include="src\RelationGraph.cpp" />
     <ClCompile Include="src\Tracking.cpp" />
+    <ClCompile Include="src\Tracklet.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
