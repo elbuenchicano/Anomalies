@@ -3,8 +3,8 @@
 
 #include "stdafx.h"
 
-#include "src\Tracking.h"
 #include <iostream>
+#include "src\Tracklet.h"
 
 using namespace cv;
 using namespace std;
@@ -12,7 +12,8 @@ using namespace std;
 int main(int arg, char ** argv)
 {
   
-
+  Rect2f   re(1,1,3,3);
+  Tracklet trk(re);
   return 0;
 
 }

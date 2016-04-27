@@ -29,14 +29,6 @@ void TrackingKalman::newTrack(TrkPoint &centroid)
   KF_.statePre.at<float>(4) = 0;
   KF_.statePre.at<float>(5) = 0;
 
-  /*KF.statePost.at<float>(0) = (float)centroid.x;
-  KF.statePost.at<float>(1) = (float)centroid.y;
-
-  KF.statePost.at<float>(2) = 0;
-  KF.statePost.at<float>(3) = 0;
-  KF.statePost.at<float>(4) = 0;
-  KF.statePost.at<float>(5) = 0;
-  */
   KF_.transitionMatrix  = (cv::Mat_<float>(6, 6) << 1, 0, 1, 0, 0.5, 0, 0, 1, 0, 1, 0, 0.5, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1);
 
   KF_.measurementMatrix = (cv::Mat_<float>(2, 6) << 1, 0, 1, 0, 0.5, 0, 0, 1, 0, 1, 0, 0.5);

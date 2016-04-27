@@ -8,9 +8,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/video/tracking.hpp>
 
+
 //global definitions...........................................................
 
-//#define TRK_KALMAN_EXAMPLE_ // kalman mouse example 
+// kalman mouse example 
+//#define TRK_KALMAN_EXAMPLE_ 
 typedef cv::Point2f   TrkPoint;
 
 ///main class for tracking
