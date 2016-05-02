@@ -159,7 +159,6 @@
   <ItemGroup>
     <ClCompile Include="Anomalies.cpp" />
     <ClCompile Include="src\AnomalieControl.cpp" />
-    <ClCompile Include="src\RelationGraph.cpp" />
     <ClCompile Include="src\Tracking.cpp" />
     <ClCompile Include="src\Tracklet.cpp" />
     <ClCompile Include="stdafx.cpp" />

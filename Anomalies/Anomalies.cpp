@@ -5,15 +5,29 @@
 
 #include <iostream>
 #include "src\Tracklet.h"
+#include "src\RelationGraph.h"
+#include <string>
+
 
 using namespace cv;
 using namespace std;
 
+
+
+
+
 int main(int arg, char ** argv)
 {
   
-  Rect2f   re(1,1,3,3);
-  Tracklet trk(re);
+  RelationGraph<int, int, int> rg;
+  rg.addSubjectNode(1);
+  rg.addObjectRelation(10, 10);
+  rg.addObjectRelation(10, 11);
+  rg.addSubjectNode(2);
+  rg.addObjectRelation(20, 21);
+  rg.addObjectRelation(20, 22);
+
+
   return 0;
 
 }

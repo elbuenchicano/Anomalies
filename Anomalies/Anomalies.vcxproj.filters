@@ -71,9 +71,6 @@
     <ClCompile Include="src\AnomalieControl.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\RelationGraph.cpp">
-      <Filter>Source Files\engine</Filter>
-    </ClCompile>
     <ClCompile Include="src\Tracking.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
