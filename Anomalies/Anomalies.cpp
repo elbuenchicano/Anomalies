@@ -3,11 +3,7 @@
 
 #include "stdafx.h"
 
-#include <iostream>
-#include "src\Tracklet.h"
-#include "src\RelationGraph.h"
-#include <string>
-
+#include "src\AnomalieControl.h"
 
 using namespace cv;
 using namespace std;
@@ -19,13 +15,11 @@ using namespace std;
 int main(int arg, char ** argv)
 {
   
-  RelationGraph<int, int, int> rg;
-  rg.addSubjectNode(1);
-  rg.addObjectRelation(10, 10);
-  rg.addObjectRelation(10, 11);
-  rg.addSubjectNode(2);
-  rg.addObjectRelation(20, 21);
-  rg.addObjectRelation(20, 22);
+  string hola = "hola como estas; nada tod ";
+  
+  //auto vec = cutil_string_split(hola);
+  //copy(vec.begin(), vec.end(), ostream_iterator<string>(cout," "));
+
 
 
   return 0;

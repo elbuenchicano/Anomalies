@@ -4,22 +4,39 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <iostream>
-#include <string>
+//#include "Support.h"
+#include "CUtil.h"
 
 //general namespaces
 using namespace std;
 using namespace cv;
-//............................................................................
+//..............................................................................
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 ///Main control class for anomalie detection
 class AnomalieControl
 {
-  string _main_prop_file;
+  //variables...................................................................
+  string            main_prop_file_;
+
+  FileStorage       fs_main_;
+
+  map<int, string>  objects_;
+
+
+
+
 public:
+  //constructors destructor.....................................................
   AnomalieControl();
   AnomalieControl(string file);
   ~AnomalieControl();
+
+  //main functions..............................................................
+  void featExtract();
+  
 };
+
 
 
 #endif //_ANOMALIE_CONTROL_

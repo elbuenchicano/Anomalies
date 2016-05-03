@@ -2,10 +2,7 @@
 
 #include "opencv2/highgui/highgui.hpp"
 #include "CUtil.h"
-#include <string>
-#include <vector>
-#include <assert.h>
-#include <algorithm>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //Main typedefs

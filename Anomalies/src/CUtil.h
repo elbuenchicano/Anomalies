@@ -1,4 +1,3 @@
-#pragma once
 #ifndef CUTIL_H
 #define CUTIL_H
 
@@ -11,7 +10,11 @@
 #include <iterator>
 #include <list>
 #include <string.h>
+#include <assert.h>
 #include <windows.h>
+#include <algorithm>
+#include <map>
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 //Cutil is a utilitaries c++ functions for strings and directories............
@@ -44,6 +47,10 @@ void ptr_mostrar(t a, int tam, std::ostream &os = std::cout)
     os << a[i] << " ";
   os << endl;
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //insert zeros into the front to get better renaming
@@ -64,6 +71,28 @@ std::string insert_numbers(std::size_t innumber, std::size_t finaln, char token 
   digits << innumber;
   return digits.str();
 }
+/*
+std::vector<std::string> cutil_string_split(std::string &str, char delim = ' ') {
+  std::vector<std::string>  tokens;
+  std::istringstream        iss(str);
+  /*if (delim == ' ') {
+    copy(std::istream_iterator<std::string>(iss),
+    std::istream_iterator<std::string>(),
+    std::back_inserter(tokens));
+  }
+  /*else{ 
+    std::string item;
+    while (getline(iss, item, delim)) 
+      tokens.push_back(item);
+  }
+  return tokens;
+}*/
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 //-----------------grig generator--------------------------------------------
 struct cuboid_dim {

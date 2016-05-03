@@ -3,11 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //constructors and destructors
 
-Tracklet::Tracklet(TrlRegion & reg){
-  region_ = reg;
+Tracklet::Tracklet(){
   trk_    = new TrackingKalman;
-  TrkPoint centroid(region_.x + region_.width , region_.y + region_.height);
-  trk_->newTrack(centroid);
 }
 
 Tracklet::~Tracklet(){
@@ -23,6 +20,14 @@ Tracklet::~Tracklet(){
 void Tracklet::find_next(TrlRegion & reg){
   region_ = reg;
   trk_->predict();
+}
+
+///initiate the tracklet
+///in: first observation 
+void Tracklet::initiate(TrlRegion & reg) {
+  region_ = reg;
+  TrkPoint centroid(region_.x + region_.width, region_.y + region_.height);
+  trk_->newTrack(centroid);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -12,7 +12,7 @@
 typedef cv::Rect2f TrlRegion; //same as kalman tracking
 
 ///tracklet class for object tracking and image location
-struct Tracklet {
+class Tracklet {
 
   int       frm_ini_,
             frm_fin_;
@@ -21,12 +21,14 @@ struct Tracklet {
 
   TrackingBase  *trk_ = nullptr;
 
+public:
   //contructors and destructors
-  Tracklet(TrlRegion &);
+  Tracklet();
   ~Tracklet();
 
   //main functions
   void find_next(TrlRegion &);
+  void initiate(TrlRegion &);
 };
 
 #endif //_TRACKLET_
