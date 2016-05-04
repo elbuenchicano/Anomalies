@@ -1,12 +1,12 @@
-#ifndef _TRACKING_
-#define _TRACKING_
+#ifndef TRACKING_H
+#define TRACKING_H
 
 //include libs.................................................................
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/video/tracking.hpp>
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/video/tracking.hpp"
 
 
 //global definitions...........................................................

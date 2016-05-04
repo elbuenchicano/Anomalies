@@ -1,11 +1,13 @@
-#ifndef _ANOMALIE_CONTROL_
-#define _ANOMALIE_CONTROL_
+#ifndef ANOMALIE_CONTROL_H
+#define ANOMALIE_CONTROL_H
 //aditional libs
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui/highgui.hpp>
-//#include "Support.h"
-#include "CUtil.h"
+
+
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "Support.h"
+
 
 //general namespaces
 using namespace std;

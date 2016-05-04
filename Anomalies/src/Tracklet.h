@@ -1,5 +1,5 @@
-#ifndef _TRACKLET_
-#define _TRACKLET_
+#ifndef TRACKLET_H
+#define TRACKLET_H
 
 //.............................................................................
 //general includes
