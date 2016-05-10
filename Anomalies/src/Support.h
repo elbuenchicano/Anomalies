@@ -23,15 +23,16 @@ struct Actor {
   graphType graph; //interaction graph 
 };
 
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-inline void loadDefinitions(std::string file, std::map<int, std::string> & info) {
+inline void loadDefinitions(std::string file, std::map<std::string, int> & info) {
   std::ifstream arc(file);
   for (std::string line; std::getline(arc, line); ) {
     auto vline = cutil_string_split(line);
     if (vline.size() > 1) 
-      info[std::stoi(vline[0])] = vline[1];
+      info[ vline[0] ] = stoi( vline[1] );
   }
   arc.close();
 }

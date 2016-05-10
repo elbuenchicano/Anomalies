@@ -32,6 +32,8 @@ void AnomalieControl::featExtract() {
 
   vector<Actor<sDataType, oDataType, eDataType> > subjects;
   
+  //............................................................................
+
 
 
 }

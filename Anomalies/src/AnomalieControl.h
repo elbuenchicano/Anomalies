@@ -23,9 +23,7 @@ class AnomalieControl
 
   FileStorage       fs_main_;
 
-  map<int, string>  objects_;
-
-
+  map<string, int>  objects_;
 
 
 public:
