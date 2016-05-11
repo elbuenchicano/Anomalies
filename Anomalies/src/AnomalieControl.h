@@ -9,9 +9,7 @@
 #include "Support.h"
 
 
-//general namespaces
-using namespace std;
-using namespace cv;
+
 //..............................................................................
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -25,6 +23,11 @@ class AnomalieControl
 
   map<string, int>  objects_;
 
+  short             frame_step_;
+
+  //main functions..............................................................
+
+  void featExtract();
 
 public:
   //constructors destructor.....................................................
@@ -32,8 +35,7 @@ public:
   AnomalieControl(string file);
   ~AnomalieControl();
 
-  //main functions..............................................................
-  void featExtract();
+  void run();
   
 };
 
