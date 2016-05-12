@@ -41,24 +41,27 @@ void AnomalieControl::run() {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 void AnomalieControl::featExtract() {
-  typedef int sDataType;  // square node data type, representing the frame
+  typedef vector<int>* sDataType;  // square node data type, representing the frame
 
-  typedef int oDataType;  // object node data type, representing the index of
+  typedef vector<int>* oDataType;  // object node data type, representing the index of
                           // general object vector
   typedef int eDataType;  // edge data type, representing the edge weigth
 
-  vector<Actor<sDataType, oDataType, eDataType> > subjects;
+  list<Actor<sDataType, oDataType, eDataType> > active_subjects;
 
+  
   //............................................................................
   string  seq_file;
   list<FrameItem> frame_list;
-
-  //............................................................................
   fs_main_["featExtract_seq_file"] >> seq_file;
   
   //............................................................................
-  loadFrameList(seq_file, frame_list, frame_step_);
+  loadFrameList(seq_file, frame_list, frame_step_, objects_);
+
+
+
   
+
   
 }
 

@@ -28,25 +28,27 @@ struct Actor {
   Tracklet  trk;   //Kalman filter tracklet
  
   graphType graph; //interaction graph 
+
+
 };
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 struct FrameItem {
-  int frameNumber;                    //real frame 
-  vector<vector<string> > sub_obj[2]; //0 = subjects 1 = objects
+  int frameNumber;                  //real frame 
+  vector<vector<int> > sub_obj[2];  //0 = subjects 1 = objects
 };
 
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+///_____________________________________________________________________________
+///MAIN SUPPORT CONTROL FUNCTIONS
+
+/////FEAT EXTRACT............................................................... 
 //load objects names and ids
-void loadDefinitions(std::string file, std::map<std::string, int> &info);
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-//load frame items 
-void loadFrameItems(ifstream &arc, FrameItem &frame);
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+void loadDefinitions( string, map<string, int> & );
+//load frame items  
+void loadFrameItems ( ifstream &, FrameItem &, map<string, int> & );
 //load frameList
-void loadFrameList(string, list<FrameItem> &, short );
+void loadFrameList  ( string, list<FrameItem> &, short, map<string, int> &);
+///_____________________________________________________________________________
+
 
 #endif// _SUPPORT_
