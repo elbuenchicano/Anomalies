@@ -20,13 +20,14 @@ Tracklet::~Tracklet(){
 void Tracklet::find_next(TrlRegion & reg){
   region_ = reg;
   trk_->predict();
+  region_ = trk_->estimate(region_);
 }
 
 ///initiate the tracklet
 ///in: first observation 
 void Tracklet::initiate(TrlRegion & reg) {
   region_ = reg;
-  TrkPoint centroid(region_.x + region_.width, region_.y + region_.height);
+  TrkPoint centroid(region_.x, region_.y );
   trk_->newTrack(centroid);
 }
 

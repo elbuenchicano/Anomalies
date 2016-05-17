@@ -9,19 +9,21 @@
 
 //.............................................................................
 //main definitions
-typedef cv::Rect2f TrlRegion; //same as kalman tracking
+typedef cv::Point2f TrlRegion; //same as kalman tracking
 
 ///tracklet class for object tracking and image location
 class Tracklet {
 
-  int       frm_ini_,
-            frm_fin_;
   
-  TrlRegion  region_;
-
   TrackingBase  *trk_ = nullptr;
 
 public:
+  int       frm_ini_,
+            frm_fin_;
+
+  TrlRegion region_;
+
+
   //contructors and destructors
   Tracklet();
   ~Tracklet();

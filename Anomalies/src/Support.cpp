@@ -26,12 +26,12 @@ void loadFrameItems(ifstream &arc, FrameItem &frame, map<string, int> & objs)
   //containing the id and positions 
   size_t info_size = 5;
   //string for person
-  string subject = "persona";
+  string subject = "person";
   //loading frame observation
   for (string line; getline(arc, line) && line.size() > 1;) {
     auto vline  = cutil_string_split(line);
     vector<int> vint(info_size);
-    vint[0] = objs[subject];
+    vint[0] = objs[vline[0]];
     string2intVec(vline, vint, 1, info_size);
     frame.sub_obj[vline[0] != subject].push_back(vint);
   }
@@ -57,3 +57,7 @@ void loadFrameList( string file, list<FrameItem> & frameList, short frame_step,
 
   seq.close();
 }
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+

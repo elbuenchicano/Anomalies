@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <functional> 
+#include <math.h>
 
 
 //general namespaces
@@ -48,6 +49,7 @@ void loadDefinitions( string, map<string, int> & );
 void loadFrameItems ( ifstream &, FrameItem &, map<string, int> & );
 //load frameList
 void loadFrameList  ( string, list<FrameItem> &, short, map<string, int> &);
+
 ///_____________________________________________________________________________
 
 
