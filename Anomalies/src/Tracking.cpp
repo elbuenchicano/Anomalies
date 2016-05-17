@@ -33,9 +33,9 @@ void TrackingKalman::newTrack(TrkPoint &centroid)
 
   KF_.measurementMatrix = (cv::Mat_<float>(2, 6) << 1, 0, 1, 0, 0.5, 0, 0, 1, 0, 1, 0, 0.5);
 
-  setIdentity(KF_.processNoiseCov, cv::Scalar::all(1e-4)); //adjust this for faster convergence - but higher noise
+  setIdentity(KF_.processNoiseCov, cv::Scalar::all(1e-2)); //adjust this for faster convergence - but higher noise
   setIdentity(KF_.measurementNoiseCov, cv::Scalar::all(2));
-  setIdentity(KF_.errorCovPost, cv::Scalar::all(.1));//.1
+  setIdentity(KF_.errorCovPost, cv::Scalar::all(.5));//.1
 
   //predict();
   //estimate(centroid);
@@ -93,7 +93,7 @@ using namespace std;
 void trk_kalmanMouseExample()
 {
   TrackingKalman trk;
-  trk.newTrack(TrkPoint(1, 1));
+  trk.newTrack(TrkPoint(100, 100));
 
   POINT mousePos;
   GetCursorPos(&mousePos);

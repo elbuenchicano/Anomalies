@@ -26,11 +26,12 @@ struct Actor {
   typedef RelationGraph<sDataType, oDataType, eDataType> graphType; 
 
   //variables.....................................................................
-  Tracklet  trk;   //Kalman filter tracklet
+  TrackingKalman  trk;   //Kalman filter tracklet
  
-  graphType graph; //interaction graph 
+  graphType       graph; //interaction graph 
 
-
+  int             old = 0;
+  
 };
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

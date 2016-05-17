@@ -30,7 +30,7 @@ void AnomalieControl::run() {
   switch (op)
   {
   case 1:
-    featExtract();
+    graphBuilding();
     break;
   default:
     break;
@@ -40,7 +40,7 @@ void AnomalieControl::run() {
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-void AnomalieControl::featExtract() {
+void AnomalieControl::graphBuilding() {
   typedef int sDataType;  // square node data type, representing the frame
 
   typedef int oDataType;  // object node data type, representing the index of
@@ -58,17 +58,21 @@ void AnomalieControl::featExtract() {
 
   int               time_life;
 
+  string            out_file,
+                    seq_file;
+
+  list<FrameItem>   frame_list;
   //............................................................................
-  string          seq_file;
-  list<FrameItem> frame_list;
+   
   fs_main_["featExtract_seq_file"]          >> seq_file;
   fs_main_["featExtract_distance_sub_thr"]  >> distance_sub_thr;
   fs_main_["featExtract_distance_obj_thr"]  >> distance_obj_thr;
   fs_main_["featExtract_time_life"]         >> time_life;
+  fs_main_["featExtract_out_file"]          >> out_file;
 
   //............................................................................
   loadFrameList(seq_file, frame_list, frame_step_, objects_);
-  
+
   //............................................................................
   //Tracking and looking for subjects
   //for each frame in parsed video
@@ -77,54 +81,76 @@ void AnomalieControl::featExtract() {
     //for each candidate subject update the list 
     for (auto & subj : frame.sub_obj[0]) {
      
-      double  mindist = FLT_MAX;
-      auto    nearest = active_sub.end();
-      Point2f subCenter( static_cast<float>( (subj[1] + subj[3]) / 2.0), 
+      double    mindist = FLT_MAX;
+      auto      nearest = active_sub.end();
+      TrkPoint  subCenter( static_cast<float>( (subj[1] + subj[3]) / 2.0), 
                          static_cast<float>( (subj[2] + subj[4]) / 2.0) );
       
       //for each active subject
-      for (auto ite = active_sub.begin(); ite != active_sub.end(); ite++) {
+      for (auto ite = active_sub.begin(); ite != active_sub.end(); ) {
         
-
-        auto dist = cv::norm( ite->trk.region_ - subCenter );
-        if (dist < distance_sub_thr) {
-          mindist = dist;
-          nearest = ite;
+        //saving the graphs if the time life is over
+        if (ite->old >= time_life) {
+          ofstream arc(out_file, ios::app);
+          ite->graph.saving2os(arc);
+          arc.close();
+          auto er = ite;
+          ite++;
+          active_sub.erase(er);
+        }
+        else {
+          TrkPoint  prd = ite->trk.predict();
+          auto dist = cv::norm(prd - subCenter);
+          if (dist < distance_sub_thr) {
+            mindist = dist;
+            nearest = ite;
+          }
+          ite++;
         }
       }
 
       if (nearest == active_sub.end()) {
         actorType new_active;
-        new_active.trk.initiate(subCenter);
-        new_active.trk.frm_ini_ = frame.frameNumber;
-        new_active.graph.addSubjectNode(frame.frameNumber);
         active_sub.push_back(new_active);
         nearest--;
+        nearest->trk.newTrack(subCenter);
+        for (int i = 0; i < 20; ++i) {
+          nearest->trk.predict();
+          nearest->trk.estimate(subCenter);
+        }
+        nearest->graph.addSubjectNode(frame.frameNumber);
       }
       else {
         nearest->graph.addSubjectNode(frame.frameNumber);
-        nearest->trk.find_next(subCenter);
+        nearest->trk.estimate(subCenter);
       }
-      
       //!!!!!!!!!!!!!!!!!!!!!!!
       //MAY CODING WITH THREADS
       //for each candidate update the object interaction
       for (auto & obj : frame.sub_obj[1]) {
-
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         //HUMAN POSE ESTIMATION
         //INITIALY WITH EUCLIDEAN DISTANCE
-        Point2f objCenter(
+        TrkPoint objCenter(
           static_cast<float> ((obj[1] + obj[3]) / 2.0), 
           static_cast<float> ((obj[2] + obj[4]) / 2.0) );
-        auto dist = cv::norm(nearest->trk.region_ - objCenter);
+        auto dist = cv::norm(subCenter - objCenter);
         if (dist < distance_obj_thr) {
-          nearest->graph.addObjectRelation(obj[0], dist);
+          nearest->graph.addObjectRelation( static_cast<oDataType>(dist), obj[0]);
         }
       }
     }
-  }
+    //updating the years 
+    for (auto & it : active_sub) ++it.old;
+  }   
+}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-  
+void AnomalieControl::graphDotDescription(string file) {
+  ofstream arc(file);
+
+  arc.close();
 }
 

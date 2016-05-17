@@ -12,7 +12,7 @@
 //global definitions...........................................................
 
 // kalman mouse example 
-//#define TRK_KALMAN_EXAMPLE_ 
+#define TRK_KALMAN_EXAMPLE_ 
 typedef cv::Point2f   TrkPoint;
 
 ///main class for tracking

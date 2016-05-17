@@ -27,8 +27,14 @@ class AnomalieControl
 
   //main functions..............................................................
 
-  void featExtract();
+  void graphBuilding();
+  
+  void graphComparison();
 
+  //secondary functions.........................................................
+
+  void graphDotDescription ( string );
+  
 public:
   //constructors destructor.....................................................
   AnomalieControl();

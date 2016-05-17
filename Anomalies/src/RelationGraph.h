@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <list>
+#include <ostream>
 
 //General definitions
 
@@ -72,7 +73,17 @@ struct RelationGraph {
     auto last = listNodes_.rbegin();
     last->addObjectRelation(objData, edgeData);
   }
-  
+  void saving2os(std::ostream & os) {
+    os << "G" <<std::endl;
+    for (auto & no : listNodes_) {
+      os << "N " << no.data_ << std::endl;
+      for (auto & link : no.objectList_) {
+        os << "E " << link.first.data_ << std::endl;
+        os << "O " << link.second << std::endl;
+      }
+    }
+    os << std::endl;
+  }
 };
 
 #endif //RELATION_GRAPH_H

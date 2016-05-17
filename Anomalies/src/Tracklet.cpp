@@ -4,11 +4,11 @@
 //constructors and destructors
 
 Tracklet::Tracklet(){
-  trk_    = new TrackingKalman;
+  //trk_    = new TrackingKalman;
 }
 
 Tracklet::~Tracklet(){
-  if (trk_) delete trk_;
+  //if (trk_) delete trk_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -19,8 +19,8 @@ Tracklet::~Tracklet(){
 ///in: region of new observation
 void Tracklet::find_next(TrlRegion & reg){
   region_ = reg;
-  trk_->predict();
-  region_ = trk_->estimate(region_);
+  region_ = trk_.predict();
+  region_ = trk_.estimate(region_);
 }
 
 ///initiate the tracklet
@@ -28,7 +28,8 @@ void Tracklet::find_next(TrlRegion & reg){
 void Tracklet::initiate(TrlRegion & reg) {
   region_ = reg;
   TrkPoint centroid(region_.x, region_.y );
-  trk_->newTrack(centroid);
+  trk_.newTrack(centroid);
+  region_ = trk_.predict();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -15,7 +15,7 @@ typedef cv::Point2f TrlRegion; //same as kalman tracking
 class Tracklet {
 
   
-  TrackingBase  *trk_ = nullptr;
+  TrackingKalman trk_;
 
 public:
   int       frm_ini_,
