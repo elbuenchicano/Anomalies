@@ -13,7 +13,7 @@ main_prop_file_(file){
   fs_main_.open(file, FileStorage::READ);
   assert(fs_main_.isOpened());
   fs_main_["main_object_file"]  >> main_object_file;
-  fs_main_["main_frame_step"]  >> frame_step_;
+  fs_main_["main_frame_step"]   >> frame_step_;
   
   //loading functions
   loadDefinitions(main_object_file, objects_);
@@ -41,17 +41,10 @@ void AnomalieControl::run() {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 void AnomalieControl::graphBuilding() {
-  typedef int sDataType;  // square node data type, representing the frame
-
-  typedef int oDataType;  // object node data type, representing the index of
-                          // general object vector
-
-  typedef double eDataType;  // edge data type, representing the edge weigth
-
-  typedef Actor<sDataType, oDataType, eDataType> actorType;
+ 
   
   //variables..................................................................
-  list< actorType > active_sub;
+  list< Actor >     active_sub;
 
   double            distance_obj_thr,
                     distance_sub_thr;
@@ -84,22 +77,21 @@ void AnomalieControl::graphBuilding() {
       double    mindist = FLT_MAX;
       auto      nearest = active_sub.end();
       TrkPoint  subCenter( static_cast<float>( (subj[1] + subj[3]) / 2.0), 
-                         static_cast<float>( (subj[2] + subj[4]) / 2.0) );
+                           static_cast<float>( (subj[2] + subj[4]) / 2.0) );
       
       //for each active subject
       for (auto ite = active_sub.begin(); ite != active_sub.end(); ) {
         
         //saving the graphs if the time life is over
-        if (ite->old >= time_life) {
-          ofstream arc(out_file, ios::app);
-          ite->graph.saving2os(arc);
-          arc.close();
+        if (ite->old_ >= time_life) {
+          ite->save2file(out_file);
           auto er = ite;
           ite++;
           active_sub.erase(er);
         }
         else {
-          TrkPoint  prd = ite->trk.predict();
+          TrkPoint  prd = ite->trk_.predict();
+          
           auto dist = cv::norm(prd - subCenter);
           if (dist < distance_sub_thr) {
             mindist = dist;
@@ -110,20 +102,16 @@ void AnomalieControl::graphBuilding() {
       }
 
       if (nearest == active_sub.end()) {
-        actorType new_active;
-        active_sub.push_back(new_active);
+        active_sub.push_back(Actor());
         nearest--;
-        nearest->trk.newTrack(subCenter);
-        for (int i = 0; i < 20; ++i) {
-          nearest->trk.predict();
-          nearest->trk.estimate(subCenter);
-        }
-        nearest->graph.addSubjectNode(frame.frameNumber);
+        nearest->runTrk(subCenter);
+        nearest->graph_.addSubjectNode(frame.frameNumber);
       }
       else {
-        nearest->graph.addSubjectNode(frame.frameNumber);
-        nearest->trk.estimate(subCenter);
+        nearest->graph_.addSubjectNode(frame.frameNumber);
+        nearest->trk_.estimate(subCenter);
       }
+      nearest->frame_ini_ = frame.frameNumber;
       //!!!!!!!!!!!!!!!!!!!!!!!
       //MAY CODING WITH THREADS
       //for each candidate update the object interaction
@@ -136,21 +124,29 @@ void AnomalieControl::graphBuilding() {
           static_cast<float> ((obj[2] + obj[4]) / 2.0) );
         auto dist = cv::norm(subCenter - objCenter);
         if (dist < distance_obj_thr) {
-          nearest->graph.addObjectRelation( static_cast<oDataType>(dist), obj[0]);
+          nearest->graph_.addObjectRelation( static_cast<Actor::oDataType>(dist), obj[0]);
         }
       }
     }
     //updating the years 
-    for (auto & it : active_sub) ++it.old;
+    for (auto & it : active_sub) ++it.old_;
   }   
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::graphDotDescription(string file) {
-  ofstream arc(file);
-
-  arc.close();
+void AnomalieControl::graphComparison() {
+  
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void AnomalieControl::graphDescription(string file, bool visual) {
+  
+}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 

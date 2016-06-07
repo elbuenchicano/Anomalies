@@ -57,7 +57,57 @@ void loadFrameList( string file, list<FrameItem> & frameList, short frame_step,
 
   seq.close();
 }
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+void loadDescribedGraphs(string file , list<BaseDefinitions_tr::graphType>& graphsList)
+{
+  ofstream arc(file);
+
+  arc.close();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+static double distance2object_sup(TrkPoint pt, TrkPoint center, TrkPoint no, 
+                                  TrkPoint se){
+
+  //ask if pt is inside 
+  if (no.x < pt.x  && pt.x < se.x && no.y < pt.y  && pt.y < se.y)
+    return -1;
+  //translate to origin
+  double    theta; //angle
+  TrkPoint  nearest;
+  pt    = pt - center;
+  theta = tan( pt.y/pt.x );
+  if (theta < 0)
+  {
+    if( pt.y > 0 )
+    nearest =  ? no : se;
+    pt = pt - nearest;
+    theta =  tan(pt.y / pt.x);
+    return ( (theta < 0)? 
+      norm(nearest - pt) : 
+      abs((nearest.x < 0)?
+          
+        )  
+      );
+  }
+  else
+    nearest = pt.x > 0 ? TrkPoint(no.x,se.y) : TrkPoint(se.x,no.y);
+  
+}
+
+double distance2object(TrkPoint el1, TrkPoint el2, TrkPoint no, TrkPoint se)
+{
+  TrkPoint  center ( static_cast<float>((no.x + se.x) / 2.0),
+                     static_cast<float>((no.y + se.y) / 2.0));
+
+
+
+  //auto dist = cv::norm(prd - subCenter);
+
+}
 
 

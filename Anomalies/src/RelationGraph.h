@@ -74,7 +74,6 @@ struct RelationGraph {
     last->addObjectRelation(objData, edgeData);
   }
   void saving2os(std::ostream & os) {
-    os << "G" <<std::endl;
     for (auto & no : listNodes_) {
       os << "N " << no.data_ << std::endl;
       for (auto & link : no.objectList_) {
@@ -82,7 +81,6 @@ struct RelationGraph {
         os << "O " << link.second << std::endl;
       }
     }
-    os << std::endl;
   }
 };
 

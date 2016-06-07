@@ -33,7 +33,7 @@ class AnomalieControl
 
   //secondary functions.........................................................
 
-  void graphDotDescription ( string );
+  void graphDescription ( string, bool  );
   
 public:
   //constructors destructor.....................................................
