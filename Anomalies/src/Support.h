@@ -69,7 +69,7 @@ struct Actor_ {
   int             old_        = 0,
                   frame_ini_  = 0;
 
-  bool            visited     = false;
+  bool            visited     = true;
 
   //main functions..............................................................
   void save2file(string out_file) {
@@ -99,6 +99,17 @@ struct FrameItem {
   vector<vector<int> > sub_obj[2];  //0 = subjects 1 = objects
 };
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+struct SubejctLabel {
+  int frm_number,
+      index_list_frm;
+};
+struct SubejctLabel {
+  int frm_number,
+      index_list_frm;
+};
+
 ///_____________________________________________________________________________
 ///MAIN SUPPORT CONTROL FUNCTIONS
 
@@ -113,7 +124,9 @@ void loadFrameItems ( ifstream &, FrameItem &, map<string, int> & );
 
 void loadFrameList  ( string, list<FrameItem> &, short, map<string, int> &);
 //compute the distance point to object bounding box
-double  distance2object( TrkPoint, TrkPoint, vector<int>);
+double  distance2object(  TrkPoint /*point*/, 
+                          TrkPoint /*NortWest point*/, 
+                          TrkPoint /*SouthEast point*/);
 
 ///_____________________________________________________________________________
 ////GRAPH COMPARISON 

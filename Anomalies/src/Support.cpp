@@ -24,15 +24,14 @@ void string2intVec(vector<string> & vec, vector<int> &res,
 void loadFrameItems(ifstream &arc, FrameItem &frame, map<string, int> & objs)
 {
   //containing the id and positions 
-  size_t info_size = 5;
   //string for person
   string subject = "person";
   //loading frame observation
   for (string line; getline(arc, line) && line.size() > 1;) {
     auto vline  = cutil_string_split(line);
-    vector<int> vint(info_size);
+    vector<int> vint(vline.size());
     vint[0] = objs[vline[0]];
-    string2intVec(vline, vint, 1, info_size);
+    string2intVec(vline, vint, 1, vint.size());
     frame.sub_obj[vline[0] != subject].push_back(vint);
   }
 }
@@ -70,44 +69,56 @@ void loadDescribedGraphs(string file , list<BaseDefinitions_tr::graphType>& grap
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-static double distance2object_sup(TrkPoint pt, TrkPoint center, TrkPoint no, 
-                                  TrkPoint se){
+
+double distance2object( TrkPoint pt, TrkPoint nw, TrkPoint se){
 
   //ask if pt is inside 
-  if (no.x < pt.x  && pt.x < se.x && no.y < pt.y  && pt.y < se.y)
+  if (nw.x < pt.x  && pt.x < se.x && nw.y > pt.y  && pt.y > se.y)
     return -1;
   //translate to origin
-  double    theta; //angle
-  TrkPoint  nearest;
-  pt    = pt - center;
-  theta = tan( pt.y/pt.x );
-  if (theta < 0)
-  {
-    if( pt.y > 0 )
-    nearest =  ? no : se;
-    pt = pt - nearest;
-    theta =  tan(pt.y / pt.x);
-    return ( (theta < 0)? 
-      norm(nearest - pt) : 
-      abs((nearest.x < 0)?
-          
-        )  
-      );
+  double    theta;  //quadrant angle
+  TrkPoint  center,
+            nearest, 
+            tmp;
+
+  //............................................................................
+  center.x = static_cast<float>((nw.x + se.x) / 2.0);
+  center.y = static_cast<float>((nw.y + se.y) / 2.0);
+  tmp     = pt - center;
+  theta   = atan2( tmp.y , tmp.x ) * 180 / _PI;
+  if (theta < 0) theta += 360;
+  short  quad = static_cast<short>(theta/90);
+  switch (quad) {
+ 
+  case 0:{//first quadrant
+    TrkPoint ne(se.x, nw.y);
+    tmp = pt - ne;
+    if (tmp.x < 0) return abs(pt.y - ne.y);
+    if (tmp.y < 0) return abs(pt.x - ne.x);
+    return norm(tmp);
   }
-  else
-    nearest = pt.x > 0 ? TrkPoint(no.x,se.y) : TrkPoint(se.x,no.y);
   
+  case 1:{//second
+    tmp = pt - nw;
+    if (tmp.x > 0) return abs(pt.y - nw.y);
+    if (tmp.y < 0) return abs(pt.x - nw.x);
+    return norm(tmp);
+  }
+  
+  case 2:{//third
+    TrkPoint sw(nw.x, se.y);
+    tmp = pt - sw;
+    if (tmp.x > 0) return abs(pt.y - sw.y);
+    if (tmp.y > 0) return abs(pt.x - sw.x);
+    return norm(tmp);
+  }
+  
+  case 3:{//fourth
+    tmp = pt - se;
+    if (tmp.x < 0) return abs(pt.y - se.y);
+    if (tmp.y > 0) return abs(pt.x - se.x);
+    return norm(tmp);
+  }
+  }
+  return 0;
 }
-
-double distance2object(TrkPoint el1, TrkPoint el2, TrkPoint no, TrkPoint se)
-{
-  TrkPoint  center ( static_cast<float>((no.x + se.x) / 2.0),
-                     static_cast<float>((no.y + se.y) / 2.0));
-
-
-
-  //auto dist = cv::norm(prd - subCenter);
-
-}
-
-

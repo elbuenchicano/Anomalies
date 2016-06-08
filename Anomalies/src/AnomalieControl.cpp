@@ -70,20 +70,30 @@ void AnomalieControl::graphBuilding() {
   //Tracking and looking for subjects
   //for each frame in parsed video
   for (auto & frame : frame_list) {
-
+    cout << frame.frameNumber<< endl;
     //for each candidate subject update the list 
     for (auto & subj : frame.sub_obj[0]) {
      
       double    mindist = FLT_MAX;
       auto      nearest = active_sub.end();
+
       TrkPoint  subCenter( static_cast<float>( (subj[1] + subj[3]) / 2.0), 
                            static_cast<float>( (subj[2] + subj[4]) / 2.0) );
+
+      //////////////////////////////////////////////////////////////////////
+      //forget this part when bug is fixed
+      
+      /*TrkPoint  hand1    ( static_cast<float>( subj[6]),  
+                           static_cast<float>( subj[7])),
+
+                hand2    ( static_cast<float>( subj[8]),  
+                           static_cast<float>( subj[9]));*/
       
       //for each active subject
       for (auto ite = active_sub.begin(); ite != active_sub.end(); ) {
         
         //saving the graphs if the time life is over
-        if (ite->old_ >= time_life) {
+        if (ite->old_ == 0) {
           ite->save2file(out_file);
           auto er = ite;
           ite++;
@@ -91,12 +101,12 @@ void AnomalieControl::graphBuilding() {
         }
         else {
           TrkPoint  prd = ite->trk_.predict();
-          
           auto dist = cv::norm(prd - subCenter);
           if (dist < distance_sub_thr) {
             mindist = dist;
             nearest = ite;
           }
+          ite->visited = true;
           ite++;
         }
       }
@@ -114,23 +124,37 @@ void AnomalieControl::graphBuilding() {
       nearest->frame_ini_ = frame.frameNumber;
       //!!!!!!!!!!!!!!!!!!!!!!!
       //MAY CODING WITH THREADS
+      
       //for each candidate update the object interaction
       for (auto & obj : frame.sub_obj[1]) {
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //HUMAN POSE ESTIMATION
-        //INITIALY WITH EUCLIDEAN DISTANCE
-        TrkPoint objCenter(
-          static_cast<float> ((obj[1] + obj[3]) / 2.0), 
-          static_cast<float> ((obj[2] + obj[4]) / 2.0) );
-        auto dist = cv::norm(subCenter - objCenter);
+        //distance to hands
+        TrkPoint  nw( static_cast<float>(obj[1]), static_cast<float>(obj[3])),
+                  se( static_cast<float>(obj[2]), static_cast<float>(obj[4]));
+
+        /*auto dist = min ( distance2object (hand1, nw, se),
+                            distance2object (hand2, nw, se));*/
+
+        auto dist = norm(subCenter - TrkPoint((nw.x + se.x) / 2.0, (nw.y + se.y) / 2));
+
         if (dist < distance_obj_thr) {
           nearest->graph_.addObjectRelation( static_cast<Actor::oDataType>(dist), obj[0]);
         }
       }
     }
     //updating the years 
-    for (auto & it : active_sub) ++it.old_;
-  }   
+    for (auto & it : active_sub) {
+      if (it.visited) {
+        it.old_ = time_life;
+        it.visited = false;
+      }
+      else
+        --it.old_;
+    }
+  }  
+  for (auto & it : active_sub) {
+    it.save2file(out_file);
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
