@@ -60,10 +60,16 @@ void loadFrameList( string file, list<FrameItem> & frameList, short frame_step,
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-void loadDescribedGraphs(string file , list<BaseDefinitions_tr::graphType>& graphsList)
+void loadDescribedGraphs( string file , 
+                          list<BaseDefinitions_tr::graphType>& graphsList)
 {
-  ofstream arc(file);
+  ifstream arc(file);
+  //...........................................................................
+  for (string line; getline(arc, line) && line.size() > 1;) {
+    auto vline = cutil_string_split(line);
+    
 
+  }
   arc.close();
 }
 

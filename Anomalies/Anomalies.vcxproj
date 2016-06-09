@@ -153,6 +153,7 @@
     <ClInclude Include="src\dirent.h" />
     <ClInclude Include="src\fmSequence.h" />
     <ClInclude Include="src\RelationGraph.h" />
+    <ClInclude Include="src\SupportClasses.h" />
     <ClInclude Include="src\Tracking.h" />
     <ClInclude Include="src\Tracklet.h" />
     <ClInclude Include="stdafx.h" />
@@ -164,6 +165,7 @@
     <ClCompile Include="src\CUtil.cpp" />
     <ClCompile Include="src\MathUtils.cpp" />
     <ClCompile Include="src\Support.cpp" />
+    <ClCompile Include="src\SupportClasses.cpp" />
     <ClCompile Include="src\Tracking.cpp" />
     <ClCompile Include="src\Tracklet.cpp" />
     <ClCompile Include="stdafx.cpp" />

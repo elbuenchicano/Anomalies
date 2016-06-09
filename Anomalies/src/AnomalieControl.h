@@ -1,14 +1,7 @@
 #ifndef ANOMALIE_CONTROL_H
 #define ANOMALIE_CONTROL_H
-//aditional libs
 
-
-#include "opencv2/core/core.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui/highgui.hpp"
 #include "Support.h"
-
-
 
 //..............................................................................
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,9 +20,9 @@ class AnomalieControl
 
   //main functions..............................................................
 
-  void graphBuilding();
+  void graphBuilding(); //recovering information from scenes given by cnns
   
-  void graphComparison();
+  void graphLoading();
 
   //secondary functions.........................................................
 

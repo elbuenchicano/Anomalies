@@ -77,8 +77,8 @@ struct RelationGraph {
     for (auto & no : listNodes_) {
       os << "N " << no.data_ << std::endl;
       for (auto & link : no.objectList_) {
-        os << "E " << link.first.data_ << std::endl;
-        os << "O " << link.second << std::endl;
+        os << "E " << link.second << std::endl;
+        os << "O " << link.first.data_ << std::endl;
       }
     }
   }

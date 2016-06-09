@@ -46,6 +46,8 @@ void AnomalieControl::graphBuilding() {
   //variables..................................................................
   list< Actor >     active_sub;
 
+  list<FrameItem>   frame_list;
+
   double            distance_obj_thr,
                     distance_sub_thr;
 
@@ -54,7 +56,7 @@ void AnomalieControl::graphBuilding() {
   string            out_file,
                     seq_file;
 
-  list<FrameItem>   frame_list;
+  
   //............................................................................
    
   fs_main_["featExtract_seq_file"]          >> seq_file;
@@ -72,6 +74,7 @@ void AnomalieControl::graphBuilding() {
   for (auto & frame : frame_list) {
     cout << frame.frameNumber<< endl;
     //for each candidate subject update the list 
+    int sub_pos = 0;
     for (auto & subj : frame.sub_obj[0]) {
      
       double    mindist = FLT_MAX;
@@ -110,22 +113,23 @@ void AnomalieControl::graphBuilding() {
           ite++;
         }
       }
-
+      
       if (nearest == active_sub.end()) {
         active_sub.push_back(Actor());
         nearest--;
         nearest->runTrk(subCenter);
-        nearest->graph_.addSubjectNode(frame.frameNumber);
+        nearest->frame_ini_ = frame.frameNumber;
+        nearest->graph_.addSubjectNode(ActorLabel(frame.frameNumber, sub_pos));
       }
       else {
-        nearest->graph_.addSubjectNode(frame.frameNumber);
+        nearest->graph_.addSubjectNode(ActorLabel(frame.frameNumber, sub_pos));
         nearest->trk_.estimate(subCenter);
       }
-      nearest->frame_ini_ = frame.frameNumber;
-      //!!!!!!!!!!!!!!!!!!!!!!!
+      //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       //MAY CODING WITH THREADS
-      
+      //........................................................................
       //for each candidate update the object interaction
+      int obj_pos = 0;
       for (auto & obj : frame.sub_obj[1]) {
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         //distance to hands
@@ -138,9 +142,11 @@ void AnomalieControl::graphBuilding() {
         auto dist = norm(subCenter - TrkPoint((nw.x + se.x) / 2.0, (nw.y + se.y) / 2));
 
         if (dist < distance_obj_thr) {
-          nearest->graph_.addObjectRelation( static_cast<Actor::oDataType>(dist), obj[0]);
+          nearest->graph_.addObjectRelation(ActorLabel(obj[0], obj_pos),dist);
         }
+        ++obj_pos;
       }
+      ++sub_pos;
     }
     //updating the years 
     for (auto & it : active_sub) {
@@ -160,8 +166,18 @@ void AnomalieControl::graphBuilding() {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::graphComparison() {
+void AnomalieControl::graphLoading() {
   
+  string file;
+
+  list<BaseDefinitions_tr::graphType> graphs;
+  //............................................................................
+  //loading variables
+  fs_main_["graphLoading_file"] >> file;
+
+  //............................................................................
+  loadDescribedGraphs(file, graphs);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

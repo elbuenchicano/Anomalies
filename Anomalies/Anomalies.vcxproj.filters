@@ -69,6 +69,9 @@
     <ClInclude Include="src\MathUtils.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\SupportClasses.h">
+      <Filter>Header Files\engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Anomalies.cpp">
@@ -94,6 +97,9 @@
     </ClCompile>
     <ClCompile Include="src\MathUtils.cpp">
       <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SupportClasses.cpp">
+      <Filter>Source Files\engine</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
