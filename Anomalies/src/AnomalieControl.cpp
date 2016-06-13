@@ -32,6 +32,9 @@ void AnomalieControl::run() {
   case 1:
     graphBuilding();
     break;
+  case 2:
+    graphLoading();
+    break;
   default:
     break;
   }
@@ -168,15 +171,19 @@ void AnomalieControl::graphBuilding() {
 
 void AnomalieControl::graphLoading() {
   
-  string file;
-
+  string  file;
+  bool    visual;
   list<BaseDefinitions_tr::graphType> graphs;
+
   //............................................................................
   //loading variables
   fs_main_["graphLoading_file"] >> file;
+  fs_main_["graphLoading_show"] >> visual;
 
   //............................................................................
   loadDescribedGraphs(file, graphs);
+  if (visual) show(graphs);
+  
 
 }
 
@@ -186,7 +193,33 @@ void AnomalieControl::graphLoading() {
 void AnomalieControl::graphDescription(string file, bool visual) {
   
 }
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////SECONDARY FUNTIONS/////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void AnomalieControl::show( list<BaseDefinitions_tr::graphType> & graphs) {
+  string  seq_file,
+          video_file;
+  list<FrameItem>   frame_list;
+
+  //............................................................................
+  fs_main_["show_seq_file"] >> seq_file;
+  fs_main_["show_video_file"] >> video_file;
+  
+  //............................................................................
+  mfVideoSequence seq(video_file);
+  loadFrameList(seq_file, frame_list, frame_step_, objects_);
+  
+  //............................................................................
+  Mat img;
+  
+  for (auto frm = frame_list.begin(); frm != frame_list.end() &&
+                                      seq.getImage(img, frm->frameNumber); frm++) {
+
+    imshow("Frame", img);
+    if (waitKey(30) >= 0) break;
+  }
+}

@@ -105,7 +105,7 @@ typedef std::vector<std::string>	cutil_file_cont;// estructura donde se guarda e
 void list_files(cutil_file_cont & sal, const char * d);
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ///Lista todos los archivos con el token de una carpeta 
-
+void list_files(cutil_file_cont & sal, const char *d, const char * token);
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ///Lista todos los archivos token de una carpeta y subcarpetas
 void list_files_all(cutil_file_cont & sal, const char *d, const char * token);

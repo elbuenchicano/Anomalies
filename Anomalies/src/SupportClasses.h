@@ -14,6 +14,8 @@
 #include "Tracklet.h"
 #include "RelationGraph.h"
 #include "MathUtils.h"
+#include "fmSequence.h"
+
 #include <fstream>
 #include <iostream>
 #include <functional> 
@@ -105,6 +107,7 @@ struct FrameItem {
 struct ActorLabel {
   int id_,
       list_idx_;
+  ActorLabel(){}
   ActorLabel(int, int);
   //funtions
   ActorLabel &operator=(ActorLabel &);

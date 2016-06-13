@@ -27,6 +27,7 @@ class AnomalieControl
   //secondary functions.........................................................
 
   void graphDescription ( string, bool  );
+  void show ( list<BaseDefinitions_tr::graphType> & );
   
 public:
   //constructors destructor.....................................................

@@ -63,12 +63,33 @@ void loadFrameList( string file, list<FrameItem> & frameList, short frame_step,
 void loadDescribedGraphs( string file , 
                           list<BaseDefinitions_tr::graphType>& graphsList)
 {
-  ifstream arc(file);
+  ifstream    arc(file);
+  double      lastEdge;
   //...........................................................................
+  assert(arc.is_open());
   for (string line; getline(arc, line) && line.size() > 1;) {
-    auto vline = cutil_string_split(line);
-    
-
+    cout << line << endl;
+    auto vline  = cutil_string_split(line);
+    switch (vline[0][0]) {
+    case 'G': {
+      graphsList.push_front(BaseDefinitions_tr::graphType());
+      break;
+    }
+    case 'N': {
+      auto head   = graphsList.begin();
+      head->addSubjectNode(ActorLabel(stoi(vline[1]), stoi(vline[2])));
+      break;
+    }
+    case 'E': {
+      lastEdge = stod(vline[1]);
+      break;
+    }
+    case 'O': {
+      auto head = graphsList.begin();
+      head->addObjectRelation(ActorLabel(stoi(vline[1]), stoi(vline[2])), lastEdge);
+      break;
+    }
+    }
   }
   arc.close();
 }
