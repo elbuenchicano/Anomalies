@@ -16,7 +16,7 @@ main_prop_file_(file){
   fs_main_["main_frame_step"]   >> frame_step_;
   
   //loading functions
-  loadDefinitions(main_object_file, objects_);
+  loadDefinitions(main_object_file, objects_, objects_rev_);
 
 }
 ///default destructor
@@ -33,7 +33,7 @@ void AnomalieControl::run() {
     graphBuilding();
     break;
   case 2:
-    graphLoading();
+    training();
     break;
   default:
     break;
@@ -169,22 +169,10 @@ void AnomalieControl::graphBuilding() {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::graphLoading() {
-  
-  string  file;
-  bool    visual;
-  list<BaseDefinitions_tr::graphType> graphs;
-
-  //............................................................................
-  //loading variables
-  fs_main_["graphLoading_file"] >> file;
-  fs_main_["graphLoading_show"] >> visual;
-
-  //............................................................................
-  loadDescribedGraphs(file, graphs);
-  if (visual) show(graphs);
-  
-
+void AnomalieControl::graphLoading(graphLstT &graph, string & file, bool visual) {
+ 
+  loadDescribedGraphs(file, graph);
+  if (visual) show(graph);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -200,26 +188,110 @@ void AnomalieControl::graphDescription(string file, bool visual) {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-void AnomalieControl::show( list<BaseDefinitions_tr::graphType> & graphs) {
+void AnomalieControl::show( graphLstT graphs) {
   string  seq_file,
           video_file;
+  double  rze;
   list<FrameItem>   frame_list;
 
+  typedef BaseDefinitions_tr::graphType::lstNodeType lstNodeType;
+
   //............................................................................
-  fs_main_["show_seq_file"] >> seq_file;
+  fs_main_["show_seq_file"]   >> seq_file;
   fs_main_["show_video_file"] >> video_file;
+  fs_main_["show_resize"]     >> rze;
   
   //............................................................................
   mfVideoSequence seq(video_file);
   loadFrameList(seq_file, frame_list, frame_step_, objects_);
   
   //............................................................................
-  Mat img;
-  
+  Mat   img;
+  int   gcont;
   for (auto frm = frame_list.begin(); frm != frame_list.end() &&
                                       seq.getImage(img, frm->frameNumber); frm++) {
 
+    //for each graph
+    gcont = 0;
+    for (auto graphs_ite = graphs.begin(); graphs_ite != graphs.end(); graphs_ite++) {
+      
+      if (rze > 0)resize(img, img, Size(), rze, rze);
+      if (graphs_ite->listNodes_.begin() != graphs_ite->listNodes_.end() &&
+          graphs_ite->listNodes_.begin()->data_.id_ == frm->frameNumber) {
+        
+        auto head = graphs_ite->listNodes_.begin();
+        Point p1( frm->sub_obj[0][head->data_.list_idx_][1],
+                  frm->sub_obj[0][head->data_.list_idx_][2]);
+
+        Point p2( frm->sub_obj[0][head->data_.list_idx_][3],
+                  frm->sub_obj[0][head->data_.list_idx_][4]);
+
+        //drawing subject
+        rectangle(img, p1, p2, Scalar(255, 0, 0));
+        //put label
+        stringstream sublbl;
+        sublbl << "Sub" << gcont;
+        putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(255, 0, 0));
+        
+        for (auto &ob : head->objectList_) {
+          Point p1( frm->sub_obj[1][ob.first.data_.list_idx_][1],
+                    frm->sub_obj[1][ob.first.data_.list_idx_][2]);
+
+          Point p2( frm->sub_obj[1][ob.first.data_.list_idx_][3],
+                    frm->sub_obj[1][ob.first.data_.list_idx_][4]);
+
+          //drawing rectangle
+          stringstream sublbl;
+          sublbl << objects_rev_[ob.first.data_.id_] << " Sub" <<gcont;
+          rectangle(img, p1, p2, Scalar(0, 150, 255));
+          putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 150, 255));
+        }
+
+        graphs_ite->listNodes_.pop_front();
+      }
+
+    }
     imshow("Frame", img);
-    if (waitKey(30) >= 0) break;
+    //if (waitKey(30) >= 0) break;
+    cv::waitKey();
+    ++gcont;
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void AnomalieControl::training(){
+  string  token,
+          directory;
+
+  cutil_file_cont graph_files;
+
+  graphLstT       graph_list;
+
+  //............................................................................
+  fs_main_["training_token"]      >> token;
+  fs_main_["training_directory"]  >> directory;
+  
+  //............................................................................
+  list_files(graph_files, directory.c_str(), token.c_str());
+  for (auto & file : graph_files) {
+    loadDescribedGraphs(file, graph_list);
+  }
+
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file) {
+  
+  
+  for (auto &graph : lst){
+    for (auto &node : graph.listNodes_) {
+      node.objectList_.
+  }
+}
+

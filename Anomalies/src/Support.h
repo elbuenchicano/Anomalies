@@ -9,7 +9,7 @@
 /////FEAT EXTRACT............................................................... 
 ////GRAPH BUILD.................................................................
 //load objects names and ids
-void loadDefinitions( string, map<string, int> & );
+void loadDefinitions( string, map<string, int> & , map<int, string> &);
 
 //load frame items  
 void loadFrameItems ( ifstream &, FrameItem &, map<string, int> & );
@@ -22,8 +22,9 @@ double  distance2object(  TrkPoint /*point*/,
                           TrkPoint /*SouthEast point*/);
 
 ///_____________________________________________________________________________
-////GRAPH COMPARISON 
+////GRAPH LOADING 
 //load described graph
 void loadDescribedGraphs(string, list<BaseDefinitions_tr::graphType> &);
+
 
 #endif// _SUPPORT_

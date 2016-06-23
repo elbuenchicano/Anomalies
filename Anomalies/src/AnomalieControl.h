@@ -9,6 +9,9 @@
 ///Main control class for anomalie detection
 class AnomalieControl
 {
+  typedef BaseDefinitions_tr::graphType graphType;
+  typedef list<graphType>               graphLstT;
+
   //variables...................................................................
   string            main_prop_file_;
 
@@ -16,18 +19,29 @@ class AnomalieControl
 
   map<string, int>  objects_;
 
+  map<int, string>  objects_rev_;
+
   short             frame_step_;
 
   //main functions..............................................................
 
   void graphBuilding(); //recovering information from scenes given by cnns
   
-  void graphLoading();
+  void training     ();
 
   //secondary functions.........................................................
 
   void graphDescription ( string, bool  );
-  void show ( list<BaseDefinitions_tr::graphType> & );
+  //graph to be shown
+  void show             ( graphLstT /*graphs*/);
+  //create dictionary 
+  //receives graph list 
+  void dictionaryBuild  ( graphLstT  & /*lst*/,
+                          string     & /*out_file*/);
+  //load graph from file
+  void graphLoading     ( graphLstT & /*graphs*/,
+                          string    & /*file*/ ,
+                          bool        /*visual*/); 
   
 public:
   //constructors destructor.....................................................

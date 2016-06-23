@@ -2,12 +2,15 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-void loadDefinitions(std::string file, std::map<std::string, int> &info) {
+void loadDefinitions(std::string file,  std::map<std::string, int> &info, 
+                                        std::map<int, std::string> &infor){
   std::ifstream arc(file);
   for (std::string line; std::getline(arc, line); ) {
     auto vline = cutil_string_split(line);
-    if (vline.size() > 1)
+    if (vline.size() > 1) {
       info[vline[0]] = stoi(vline[1]);
+      infor[stoi(vline[1])] = vline[0];
+    }
   }
   arc.close();
 }
@@ -68,7 +71,7 @@ void loadDescribedGraphs( string file ,
   //...........................................................................
   assert(arc.is_open());
   for (string line; getline(arc, line) && line.size() > 1;) {
-    cout << line << endl;
+    //cout << line << endl;
     auto vline  = cutil_string_split(line);
     switch (vline[0][0]) {
     case 'G': {

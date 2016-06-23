@@ -55,8 +55,11 @@ template <class ts, class to, class te>
 struct RelationGraph {
   //definitions
   typedef RelationNodeSubject<ts, to, te> node;
-    
-  std::list<node> listNodes_;
+  
+  typedef std::list<node>                 lstNodeType;
+  
+  //variables
+  lstNodeType listNodes_;
 
   //constructors destructors....................................................
 
