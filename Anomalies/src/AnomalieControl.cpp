@@ -35,6 +35,7 @@ void AnomalieControl::run() {
   case 2:
     training();
     break;
+
   default:
     break;
   }
@@ -172,7 +173,9 @@ void AnomalieControl::graphBuilding() {
 void AnomalieControl::graphLoading(graphLstT &graph, string & file, bool visual) {
  
   loadDescribedGraphs(file, graph);
-  if (visual) show(graph);
+  if (visual) {
+    show(graph);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -256,6 +259,9 @@ void AnomalieControl::show( graphLstT graphs) {
     cv::waitKey();
     ++gcont;
   }
+
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -291,7 +297,7 @@ void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file) {
   
   for (auto &graph : lst){
     for (auto &node : graph.listNodes_) {
-      node.objectList_.
+    }
   }
 }
 

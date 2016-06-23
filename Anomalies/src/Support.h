@@ -26,5 +26,4 @@ double  distance2object(  TrkPoint /*point*/,
 //load described graph
 void loadDescribedGraphs(string, list<BaseDefinitions_tr::graphType> &);
 
-
 #endif// _SUPPORT_
