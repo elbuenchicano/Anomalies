@@ -291,7 +291,7 @@ void AnomalieControl::training(){
 void AnomalieControl::testing() {
   string  voc_file;
   string  graph_file;
-  
+  int     pos;
   graphLstT graph_test;
   //............................................................................
   fs_main_["testing_voc_file"]    >> voc_file;
@@ -301,6 +301,19 @@ void AnomalieControl::testing() {
 
   loadDescribedGraphs(graph_file, graph_test);
   auto voc = cutil_load2strv(voc_file);
+  for (auto &graph : graph_test) {
+    for (auto &node : graph.listNodes_) {
+      set<int> objects;
+      for (auto &par : node.objectList_)
+        objects.insert(par.first.data_.id_);
+      auto  str = set2str(objects);
+   
+      if (cutil_bin_search<string>(voc, str, pos)) {
+        cout << "Warning: Frame" << graph.listNodes_.begin()->data_.id_<<"/n";
+        cout << "Unknown word: " << str << "/n" ;
+      }
+    }
+  }
 
 
 }
