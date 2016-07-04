@@ -29,6 +29,8 @@ class AnomalieControl
   
   void training     ();
 
+  void testing      ();
+
   //secondary functions.........................................................
 
   void graphDescription ( string, bool  );

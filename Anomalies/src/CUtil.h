@@ -38,6 +38,12 @@ bool cmpStrNum(const std::string &a, const std::string &b);
 template <class t>
 void ptr_mostrar(t a, int tam, std::ostream &os = std::cout);
 
+//save std container to file 
+template <class t> void cutil_cont2os(std::ostream &os, t &con, std::string sep) {
+  for (auto & it : con)
+    os << it << sep;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -71,7 +77,29 @@ void cutil_create_new_dir_all(std::string & base);
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
-//static files...............................................................
+//algorithms.................................................................
+
+//t tipe must have operator < and == overloaded
+template <class t>
+bool cutil_bin_search(std::vector<t> & vec, t val, int & pos,
+                      int ini = 0, 
+                      int fin = 1<<31) {
+  if (fin >= vec.size())
+      fin = static_cast<int>(vec.size() - 1);
+  
+  for (int m = (ini + fin) >> 1; ini <= fin; m = (ini + fin) >> 1) {
+    if (vec[m] == val) {
+      pos = m;
+      return true;
+    }
+    if (vec[m] > val)
+      fin = m - 1;
+    else
+      ini = m + 1;
+  }
+  return false;
+}
+
 
 
 

@@ -269,24 +269,45 @@ void AnomalieControl::show( graphLstT graphs) {
 
 void AnomalieControl::training(){
   string  token,
-          directory;
+          directory,
+          out_voc_file;
 
   cutil_file_cont graph_files;
 
   graphLstT       graph_list;
 
   //............................................................................
-  fs_main_["training_token"]      >> token;
-  fs_main_["training_directory"]  >> directory;
+  fs_main_["training_token"]          >> token;
+  fs_main_["training_directory"]      >> directory;
+  fs_main_["training_out_voc_file"]   >> out_voc_file;
+
   
   //............................................................................
   list_files(graph_files, directory.c_str(), token.c_str());
   for (auto & file : graph_files) {
     loadDescribedGraphs(file, graph_list);
   }
+  dictionaryBuild(graph_list, out_voc_file);
+}
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void AnomalieControl::testing() {
+  string  voc_file;
+  string  graph_file;
+  
+  graphLstT graph_test;
+  //............................................................................
+  fs_main_["testing_voc_file"]    >> voc_file;
+  fs_main_["testing_graph_file"]  >> graph_file;
+
+  //............................................................................
+
+  loadDescribedGraphs(graph_file, graph_test);
 
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -294,10 +315,18 @@ void AnomalieControl::training(){
 
 void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file) {
   
-  
+  set<string> voc;
   for (auto &graph : lst){
     for (auto &node : graph.listNodes_) {
+      set<int> objects;
+      for (auto &par : node.objectList_)
+        objects.insert(par.first.data_.id_);
+      auto  str = set2str(objects);
+      voc.insert(str);
     }
   }
+  ofstream arc(out_file);
+  cutil_cont2os(arc, voc, "\n");
+  arc.close();
 }
 

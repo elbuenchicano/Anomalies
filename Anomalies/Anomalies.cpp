@@ -10,9 +10,15 @@ int main(int arg, char ** argv)
 
   AnomalieControl AControl(arg > 1 ? argv[1] : static_file);
 
-  AControl.run();
+  //AControl.run();
   /**/
- 
+ /*
+  vector<string > vec{ "aa" , "ba","ca" ,"da" ,"ea" ,"fa"  };
+  int pos;
+  cutil_bin_search<string>(vec, "fa", pos);
+  
+  cutil_cont2os<vector<string>>(cout, vec, " - \n");
+  */
   return 0;
 }
 
