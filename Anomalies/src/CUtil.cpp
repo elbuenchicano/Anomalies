@@ -37,6 +37,18 @@ std::string insert_numbers(std::size_t innumber, std::size_t finaln, char token)
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+std::vector<std::string> cutil_load2strv(std::string & file){
+  std::ifstream arc(file);
+  assert(arc.is_open());
+  std::list<std::string> files;
+  for (std::string line; std::getline(arc, line); )
+    files.push_back(line);
+  arc.close();
+  std::vector<std::string> res(files.begin(), files.end());
+  return res;
+}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 std::vector<std::string> cutil_string_split(std::string &str, char delim) {
   std::vector<std::string>  tokens;
   std::istringstream        iss(str);
