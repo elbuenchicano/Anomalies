@@ -31,19 +31,19 @@ class AnomalieControl
 
   void testing      ();
 
+  void show();
+
   //secondary functions.........................................................
 
   //graph to be shown
-  void show             ( graphLstT /*graphs*/);
+  
   //create dictionary 
   //receives graph list 
   void dictionaryBuild  ( graphLstT  & /*lst*/,
                           string     & /*out_file*/);
   
   //load graph from file
-  void graphLoading     ( graphLstT & /*graphs*/,
-                          string    & /*file*/ ,
-                          bool        /*visual*/); 
+  
   
 public:
   //constructors destructor.....................................................

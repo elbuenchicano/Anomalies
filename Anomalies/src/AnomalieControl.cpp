@@ -35,7 +35,9 @@ void AnomalieControl::run() {
   case 2:
     training();
     break;
-
+  case 3:
+    show();
+    break;
   default:
     break;
   }
@@ -173,27 +175,16 @@ void AnomalieControl::graphBuilding() {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::graphLoading(graphLstT &graph, string & file, bool visual) {
- 
-  loadDescribedGraphs(file, graph);
-  if (visual) {
-    show(graph);
-  }
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-/////////////////////SECONDARY FUNTIONS/////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-void AnomalieControl::show( graphLstT graphs) {
+void AnomalieControl::show() {
   string  seq_file,
-          video_file;
+          video_file,
+          graph_file;
+
   double  rze;
+
   list<FrameItem>   frame_list;
+
+  graphLstT         graphs;
 
   typedef BaseDefinitions_tr::graphType::lstNodeType lstNodeType;
 
@@ -201,31 +192,34 @@ void AnomalieControl::show( graphLstT graphs) {
   fs_main_["show_seq_file"]   >> seq_file;
   fs_main_["show_video_file"] >> video_file;
   fs_main_["show_resize"]     >> rze;
-  
+  fs_main_["show_graph_file"] >> graph_file;
+
   //............................................................................
   mfVideoSequence seq(video_file);
   loadFrameList(seq_file, frame_list, frame_step_, objects_);
-  
+
+  loadDescribedGraphs(graph_file, graphs);
+
   //............................................................................
   Mat   img;
   int   gcont;
   for (auto frm = frame_list.begin(); frm != frame_list.end() &&
-                                      seq.getImage(img, frm->frameNumber); frm++) {
+    seq.getImage(img, frm->frameNumber); frm++) {
 
     //for each graph
     gcont = 0;
     for (auto graphs_ite = graphs.begin(); graphs_ite != graphs.end(); graphs_ite++) {
-      
+
       if (rze > 0)resize(img, img, Size(), rze, rze);
       if (graphs_ite->listNodes_.begin() != graphs_ite->listNodes_.end() &&
-          graphs_ite->listNodes_.begin()->data_.id_ == frm->frameNumber) {
-        
-        auto head = graphs_ite->listNodes_.begin();
-        Point p1( frm->sub_obj[0][head->data_.list_idx_][1],
-                  frm->sub_obj[0][head->data_.list_idx_][2]);
+        graphs_ite->listNodes_.begin()->data_.id_ == frm->frameNumber) {
 
-        Point p2( frm->sub_obj[0][head->data_.list_idx_][3],
-                  frm->sub_obj[0][head->data_.list_idx_][4]);
+        auto head = graphs_ite->listNodes_.begin();
+        Point p1(frm->sub_obj[0][head->data_.list_idx_][1],
+          frm->sub_obj[0][head->data_.list_idx_][2]);
+
+        Point p2(frm->sub_obj[0][head->data_.list_idx_][3],
+          frm->sub_obj[0][head->data_.list_idx_][4]);
 
         //drawing subject
         rectangle(img, p1, p2, Scalar(255, 0, 0));
@@ -233,17 +227,17 @@ void AnomalieControl::show( graphLstT graphs) {
         stringstream sublbl;
         sublbl << "Sub" << gcont;
         putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(255, 0, 0));
-        
-        for (auto &ob : head->objectList_) {
-          Point p1( frm->sub_obj[1][ob.first.data_.list_idx_][1],
-                    frm->sub_obj[1][ob.first.data_.list_idx_][2]);
 
-          Point p2( frm->sub_obj[1][ob.first.data_.list_idx_][3],
-                    frm->sub_obj[1][ob.first.data_.list_idx_][4]);
+        for (auto &ob : head->objectList_) {
+          Point p1(frm->sub_obj[1][ob.first.data_.list_idx_][1],
+            frm->sub_obj[1][ob.first.data_.list_idx_][2]);
+
+          Point p2(frm->sub_obj[1][ob.first.data_.list_idx_][3],
+            frm->sub_obj[1][ob.first.data_.list_idx_][4]);
 
           //drawing rectangle
           stringstream sublbl;
-          sublbl << objects_rev_[ob.first.data_.id_] << " Sub" <<gcont;
+          sublbl << objects_rev_[ob.first.data_.id_] << " Sub" << gcont;
           rectangle(img, p1, p2, Scalar(0, 150, 255));
           putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 150, 255));
         }
@@ -253,14 +247,23 @@ void AnomalieControl::show( graphLstT graphs) {
 
     }
     imshow("Frame", img);
-    //if (waitKey(30) >= 0) break;
-    cv::waitKey();
+    if (waitKey(30) >= 0) break;
+    //cv::waitKey();
     ++gcont;
   }
 
 
 
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////SECONDARY FUNTIONS/////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -36,7 +36,8 @@ void loadFrameItems(  vector<string >&vline, list<FrameItem>::iterator &frame,
   vector<int> vint(vline.size());
   vint[0] = objs[vline[0]];
   string2intVec(vline, vint, 1, vint.size());
-
+  vint[3] += vint[1];
+  vint[4] += vint[2];
   frame->sub_obj[vline[0] != subject].push_back(vint);
  
 }
@@ -84,28 +85,30 @@ void loadDescribedGraphs( string file ,
   double      lastEdge;
   //...........................................................................
   assert(arc.is_open());
-  for (string line; getline(arc, line) && line.size() > 1;) {
+  for (string line; getline(arc, line);) {
     //cout << line << endl;
-    auto vline  = cutil_string_split(line);
-    switch (vline[0][0]) {
-    case 'G': {
-      graphsList.push_front(BaseDefinitions_tr::graphType());
-      break;
-    }
-    case 'N': {
-      auto head   = graphsList.begin();
-      head->addSubjectNode(ActorLabel(stoi(vline[1]), stoi(vline[2])));
-      break;
-    }
-    case 'E': {
-      lastEdge = stod(vline[1]);
-      break;
-    }
-    case 'O': {
-      auto head = graphsList.begin();
-      head->addObjectRelation(ActorLabel(stoi(vline[1]), stoi(vline[2])), lastEdge);
-      break;
-    }
+    if (line.size() > 1) {
+      auto vline = cutil_string_split(line);
+      switch (vline[0][0]) {
+      case 'G': {
+        graphsList.push_front(BaseDefinitions_tr::graphType());
+        break;
+      }
+      case 'N': {
+        auto head = graphsList.begin();
+        head->addSubjectNode(ActorLabel(stoi(vline[1]), stoi(vline[2])));
+        break;
+      }
+      case 'E': {
+        lastEdge = stod(vline[1]);
+        break;
+      }
+      case 'O': {
+        auto head = graphsList.begin();
+        head->addObjectRelation(ActorLabel(stoi(vline[1]), stoi(vline[2])), lastEdge);
+        break;
+      }
+      }
     }
   }
   arc.close();
