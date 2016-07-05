@@ -12,10 +12,14 @@
 void loadDefinitions( string, map<string, int> & , map<int, string> &);
 
 //load frame items  
-void loadFrameItems ( ifstream &, FrameItem &, map<string, int> & );
+void loadFrameItems ( vector<string> &, 
+  list<FrameItem>::iterator &,
+  map<string, int> & );
 //load frameList
 
-void loadFrameList  ( string, list<FrameItem> &, short, map<string, int> &);
+void loadFrameList  ( string, 
+  list<FrameItem> &, short, 
+  map<string, int> &);
 //compute the distance point to object bounding box
 double  distance2object(  TrkPoint /*point*/, 
                           TrkPoint /*NortWest point*/, 

@@ -8,8 +8,11 @@ void loadDefinitions(std::string file,  std::map<std::string, int> &info,
   for (std::string line; std::getline(arc, line); ) {
     auto vline = cutil_string_split(line);
     if (vline.size() > 1) {
-      info[vline[0]] = stoi(vline[1]);
-      infor[stoi(vline[1])] = vline[0];
+      auto name = cutil_string_join(vline, 1);
+      int id = stoi(vline[vline.size()-1]);
+        
+      info[name]  = id;
+      infor[id]   = name;
     }
   }
   arc.close();
@@ -24,19 +27,18 @@ void string2intVec(vector<string> & vec, vector<int> &res,
 }
 //////////////////////////////////////////////////////////////////////////////// 
 ////////////////////////////////////////////////////////////////////////////////
-void loadFrameItems(ifstream &arc, FrameItem &frame, map<string, int> & objs)
+void loadFrameItems(  vector<string >&vline, list<FrameItem>::iterator &frame, 
+                      map<string, int> & objs)
 {
   //containing the id and positions 
   //string for person
   string subject = "person";
-  //loading frame observation
-  for (string line; getline(arc, line) && line.size() > 1;) {
-    auto vline  = cutil_string_split(line);
-    vector<int> vint(vline.size());
-    vint[0] = objs[vline[0]];
-    string2intVec(vline, vint, 1, vint.size());
-    frame.sub_obj[vline[0] != subject].push_back(vint);
-  }
+  vector<int> vint(vline.size());
+  vint[0] = objs[vline[0]];
+  string2intVec(vline, vint, 1, vint.size());
+
+  frame->sub_obj[vline[0] != subject].push_back(vint);
+ 
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,20 +46,32 @@ void loadFrameList( string file, list<FrameItem> & frameList, short frame_step,
                     map<string, int> & objs) {
   ifstream seq(file);
   assert(seq.is_open());
-
+  list<FrameItem> tmp;
   short nframe = 0;
-  for (string line; getline(seq, line); ++nframe) {
+  for (string line; getline(seq, line); ) {
+    //cout << line << endl;
     auto vline = cutil_string_split(line);
     if (vline.size() > 1) {
-      if (vline[0] == "Frame_" && (nframe % frame_step == 0)) {
+      if (vline[0] == "Frame" ) {
         FrameItem frm{ stoi(vline[1]) };
-        loadFrameItems(seq, frm, objs);
-        frameList.push_back(frm);
+        tmp.push_back(frm);
+      }
+      else {
+        auto it = tmp.end();
+        it--;
+        loadFrameItems(vline, it, objs);
       }
     }
   }
-
   seq.close();
+  int cont = 0;
+  frameList.clear();
+  for (auto & item : tmp) {
+    if ((cont++ % frame_step) == 0)
+      frameList.push_back(item);
+  }
+
+
 }
 
 

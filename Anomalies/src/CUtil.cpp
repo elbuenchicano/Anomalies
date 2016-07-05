@@ -140,6 +140,19 @@ std::string cutil_antecessor(std::string & path, short step)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+std::string cutil_string_trim(std::string str) {
+  str.erase(0, str.find_first_not_of(' '));       //prefixing spaces
+  str.erase(str.find_last_not_of(' ') + 1);         //surfixing spaces
+  return str;
+}
+
+std::string cutil_string_join(std::vector<std::string> & vline, int ex = 0) {
+  std::string str = "";
+  for (size_t i = 0; i < (vline.size() - ex); ++i)
+    str += vline[i] + " ";
+  return cutil_string_trim(str);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 void cutil_create_new_dir_all(std::string & base)

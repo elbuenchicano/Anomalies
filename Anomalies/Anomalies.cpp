@@ -6,11 +6,11 @@
 int main(int arg, char ** argv)
 {
  
-  string static_file = "e:/research/anomalies/gabriel/main.yml";
+  string static_file = "e:/research/anomalies/sequence1/main.yml";
 
   AnomalieControl AControl(arg > 1 ? argv[1] : static_file);
 
-  //AControl.run();
+  AControl.run();
   /**/
  /*
   vector<string > vec{ "aa" , "ba","ca" ,"da" ,"ea" ,"fa"  };

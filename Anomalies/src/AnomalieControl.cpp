@@ -58,7 +58,8 @@ void AnomalieControl::graphBuilding() {
   int               time_life;
 
   string            out_file,
-                    seq_file;
+                    seq_file,
+                    out_token;
 
   
   //............................................................................
@@ -68,9 +69,11 @@ void AnomalieControl::graphBuilding() {
   fs_main_["featExtract_distance_obj_thr"]  >> distance_obj_thr;
   fs_main_["featExtract_time_life"]         >> time_life;
   fs_main_["featExtract_out_file"]          >> out_file;
+  fs_main_["featExtract_out_token"]         >> out_token;
 
   //............................................................................
   loadFrameList(seq_file, frame_list, frame_step_, objects_);
+  out_file += cutil_LastName(seq_file) + out_token;
 
   //............................................................................
   //Tracking and looking for subjects
