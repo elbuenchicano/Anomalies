@@ -95,11 +95,11 @@ void AnomalieControl::graphBuilding() {
       //////////////////////////////////////////////////////////////////////
       //forget this part when bug is fixed
       
-      /*TrkPoint  hand1    ( static_cast<float>( subj[6]),  
+      TrkPoint  hand1    ( static_cast<float>( subj[6]),  
                            static_cast<float>( subj[7])),
 
                 hand2    ( static_cast<float>( subj[8]),  
-                           static_cast<float>( subj[9]));*/
+                           static_cast<float>( subj[9]));
       
       //for each active subject
       for (auto ite = active_sub.begin(); ite != active_sub.end(); ) {
@@ -145,8 +145,8 @@ void AnomalieControl::graphBuilding() {
         TrkPoint  nw( static_cast<float>(obj[1]), static_cast<float>(obj[3])),
                   se( static_cast<float>(obj[2]), static_cast<float>(obj[4]));
 
-        /*auto dist = min ( distance2object (hand1, nw, se),
-                            distance2object (hand2, nw, se));*/
+        auto dist2 = min ( distance2object (hand1, nw, se),
+                          distance2object (hand2, nw, se));
 
         auto dist = norm(subCenter - TrkPoint((nw.x + se.x) / 2.0, (nw.y + se.y) / 2));
 
@@ -205,6 +205,9 @@ void AnomalieControl::show() {
   int   gcont;
   for (auto frm = frame_list.begin(); frm != frame_list.end() &&
     seq.getImage(img, frm->frameNumber); frm++) {
+    stringstream lblframe;
+    lblframe << "Frame " << frm->frameNumber;
+    putText(img, lblframe.str(), Point(10,1), CV_FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 0, 0));
 
     //for each graph
     gcont = 0;
@@ -221,8 +224,20 @@ void AnomalieControl::show() {
         Point p2(frm->sub_obj[0][head->data_.list_idx_][3],
           frm->sub_obj[0][head->data_.list_idx_][4]);
 
+        Point hand1(frm->sub_obj[0][head->data_.list_idx_][6],
+          frm->sub_obj[0][head->data_.list_idx_][7]);
+
+        Point hand2(frm->sub_obj[0][head->data_.list_idx_][8],
+          frm->sub_obj[0][head->data_.list_idx_][9]);
+
         //drawing subject
         rectangle(img, p1, p2, Scalar(255, 0, 0));
+
+        //drawing hands
+
+        circle(img, hand1, 5, Scalar(255, 0, 255), -1, 8);
+        circle(img, hand2, 5, Scalar(255, 0, 255), -1, 8);
+
         //put label
         stringstream sublbl;
         sublbl << "Sub" << gcont;
@@ -247,8 +262,8 @@ void AnomalieControl::show() {
 
     }
     imshow("Frame", img);
-    if (waitKey(30) >= 0) break;
-    //cv::waitKey();
+    //if (waitKey(30) >= 0) break;
+    cv::waitKey();
     ++gcont;
   }
 

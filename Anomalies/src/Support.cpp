@@ -20,10 +20,10 @@ void loadDefinitions(std::string file,  std::map<std::string, int> &info,
 //////////////////////////////////////////////////////////////////////////////// 
 ////////////////////////////////////////////////////////////////////////////////
 static inline 
-void string2intVec(vector<string> & vec, vector<int> &res,
-                          size_t i, size_t f) {
-  for (size_t it = i; it < f; ++it)
-    res[it] = stoi(vec[it]);
+void string2intVec( vector<string> & vec, vector<int> &res,
+                    size_t i, size_t f) {
+  for (size_t it = i, cont = 1; it < f; ++it, ++cont)
+    res[cont] = stoi(vec[it]);
 }
 //////////////////////////////////////////////////////////////////////////////// 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,9 +33,23 @@ void loadFrameItems(  vector<string >&vline, list<FrameItem>::iterator &frame,
   //containing the id and positions 
   //string for person
   string subject = "person";
-  vector<int> vint(vline.size());
-  vint[0] = objs[vline[0]];
-  string2intVec(vline, vint, 1, vint.size());
+  int i, j;
+  vector<int> vint;
+  if (vline.size() == 10) {
+    vint.resize(vline.size());
+    vint[0] = objs[vline[0]];
+    string2intVec(vline, vint, 1, vint.size());
+  }
+  else {
+    j = vline.size() - 6;
+    for (i = 1; i <= j; i++) {
+      vline[0] += ' ' + vline[i];
+    }
+    vint.resize(6);
+    string2intVec(vline, vint, j + 1, vint.size());
+    vint[0] = objs[vline[0]];
+  }
+  
   vint[3] += vint[1];
   vint[4] += vint[2];
   frame->sub_obj[vline[0] != subject].push_back(vint);
