@@ -42,6 +42,9 @@ class AnomalieControl
   void dictionaryBuild  ( graphLstT  & /*lst*/,
                           string     & /*out_file*/);
   
+  //return image by request
+  Mat show              ( int );
+
   //load graph from file
   
   

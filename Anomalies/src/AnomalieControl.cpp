@@ -82,6 +82,8 @@ void AnomalieControl::graphBuilding() {
   //for each frame in parsed video
   for (auto & frame : frame_list) {
     cout << frame.frameNumber<< endl;
+    //auto img = show(frame.frameNumber);
+
     //for each candidate subject update the list 
     int sub_pos = 0;
     for (auto & subj : frame.sub_obj[0]) {
@@ -101,6 +103,10 @@ void AnomalieControl::graphBuilding() {
                 hand2    ( static_cast<float>( subj[8]),  
                            static_cast<float>( subj[9]));
       
+
+      //circle(img, hand1, 5, Scalar(255, 0, 255), -1, 8);
+      //circle(img, hand2, 5, Scalar(255, 0, 255), -1, 8);
+
       //for each active subject
       for (auto ite = active_sub.begin(); ite != active_sub.end(); ) {
         
@@ -142,13 +148,19 @@ void AnomalieControl::graphBuilding() {
       for (auto & obj : frame.sub_obj[1]) {
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         //distance to hands
-        TrkPoint  nw( static_cast<float>(obj[1]), static_cast<float>(obj[3])),
-                  se( static_cast<float>(obj[2]), static_cast<float>(obj[4]));
 
-        auto dist2 = min ( distance2object (hand1, nw, se),
-                          distance2object (hand2, nw, se));
+        
 
-        auto dist = norm(subCenter - TrkPoint((nw.x + se.x) / 2.0, (nw.y + se.y) / 2));
+        TrkPoint  sw( static_cast<float>(obj[1]), static_cast<float>(obj[2])),
+                  ne( static_cast<float>(obj[3]), static_cast<float>(obj[4]));
+
+        auto dist = min ( distance2object (hand1, sw, ne),
+                          distance2object (hand2, sw, ne));
+
+
+        //rectangle(img, nw, se, Scalar(0, 150, 255));
+
+        //auto dist2 = norm(subCenter - TrkPoint((nw.x + se.x) / 2.0, (nw.y + se.y) / 2));
 
         if (dist < distance_obj_thr) {
           nearest->graph_.addObjectRelation(ActorLabel(obj[0], obj_pos),dist);
@@ -205,9 +217,11 @@ void AnomalieControl::show() {
   int   gcont;
   for (auto frm = frame_list.begin(); frm != frame_list.end() &&
     seq.getImage(img, frm->frameNumber); frm++) {
+
+    //drawing frame number
     stringstream lblframe;
     lblframe << "Frame " << frm->frameNumber;
-    putText(img, lblframe.str(), Point(10,1), CV_FONT_HERSHEY_PLAIN, 2.0, Scalar(255, 0, 0));
+    putText(img, lblframe.str(), Point(0,20), CV_FONT_HERSHEY_PLAIN, 2.0, Scalar(0, 0, 255));
 
     //for each graph
     gcont = 0;
@@ -271,39 +285,36 @@ void AnomalieControl::show() {
 
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-/////////////////////SECONDARY FUNTIONS/////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-void AnomalieControl::training(){
+void AnomalieControl::training() {
   string  token,
-          directory,
-          out_voc_file;
+    directory,
+    out_voc_file;
 
   cutil_file_cont graph_files;
 
   graphLstT       graph_list;
 
   //............................................................................
-  fs_main_["training_token"]          >> token;
-  fs_main_["training_directory"]      >> directory;
-  fs_main_["training_out_voc_file"]   >> out_voc_file;
+  fs_main_["training_token"] >> token;
+  fs_main_["training_directory"] >> directory;
+  fs_main_["training_out_voc_file"] >> out_voc_file;
 
-  
+
   //............................................................................
+  //First level: atomic anomalies 
+  //dictionary build 
+  cout << "Training...\n";
   list_files(graph_files, directory.c_str(), token.c_str());
   for (auto & file : graph_files) {
+    cout << file << endl;
     loadDescribedGraphs(file, graph_list);
   }
   dictionaryBuild(graph_list, out_voc_file);
+  cout << "Written in " << out_voc_file << endl;
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -315,8 +326,8 @@ void AnomalieControl::testing() {
   int     pos;
   graphLstT graph_test;
   //............................................................................
-  fs_main_["testing_voc_file"]    >> voc_file;
-  fs_main_["testing_graph_file"]  >> graph_file;
+  fs_main_["testing_voc_file"] >> voc_file;
+  fs_main_["testing_graph_file"] >> graph_file;
 
   //............................................................................
 
@@ -328,15 +339,37 @@ void AnomalieControl::testing() {
       for (auto &par : node.objectList_)
         objects.insert(par.first.data_.id_);
       auto  str = set2str(objects);
-   
+
       if (cutil_bin_search<string>(voc, str, pos)) {
-        cout << "Warning: Frame" << graph.listNodes_.begin()->data_.id_<<"/n";
-        cout << "Unknown word: " << str << "/n" ;
+        cout << "Warning: Frame" << graph.listNodes_.begin()->data_.id_ << "/n";
+        cout << "Unknown word: " << str << "/n";
       }
     }
   }
 
 
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////SECONDARY FUNTIONS/////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+Mat AnomalieControl::show(int frame) {
+  
+  string  video_file,
+          rze;
+  fs_main_["show_video_file"] >> video_file;
+  fs_main_["show_resize"]     >> rze;
+  
+  mfVideoSequence seq(video_file);
+  assert(seq.cap_.isOpened());
+  Mat img;
+  seq.getImage(img, frame);
+  return img;
 }
 
 
@@ -350,10 +383,12 @@ void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file) {
   for (auto &graph : lst){
     for (auto &node : graph.listNodes_) {
       set<int> objects;
-      for (auto &par : node.objectList_)
+      for (auto &par : node.objectList_) {
         objects.insert(par.first.data_.id_);
+      }
       auto  str = set2str(objects);
-      voc.insert(str);
+      if(str != "")
+        voc.insert(str);
     }
   }
   ofstream arc(out_file);

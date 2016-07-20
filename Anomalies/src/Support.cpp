@@ -130,11 +130,28 @@ void loadDescribedGraphs( string file ,
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+void resumingGraphs( list<BaseDefinitions_tr::graphType> & src,
+                     list<BaseDefinitions_tr::graphType> & dst) {
 
-double distance2object( TrkPoint pt, TrkPoint nw, TrkPoint se){
+  for (auto & gr : src) {
+    BaseDefinitions_tr::graphType newg;
+    auto it = gr.listNodes_.begin();
+    ++it;
+    for (; it != gr.listNodes_.end(); ++it) {
+
+    }
+
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+double distance2object( TrkPoint pt, TrkPoint sw, TrkPoint ne){
 
   //ask if pt is inside 
-  if (nw.x < pt.x  && pt.x < se.x && nw.y > pt.y  && pt.y > se.y)
+  if (sw.x < pt.x  && pt.x < ne.x && ne.y > pt.y  && pt.y > sw.y)
     return -1;
   //translate to origin
   double    theta;  //quadrant angle
@@ -143,8 +160,8 @@ double distance2object( TrkPoint pt, TrkPoint nw, TrkPoint se){
             tmp;
 
   //............................................................................
-  center.x = static_cast<float>((nw.x + se.x) / 2.0);
-  center.y = static_cast<float>((nw.y + se.y) / 2.0);
+  center.x = static_cast<float>((sw.x + ne.x) / 2.0);
+  center.y = static_cast<float>((sw.y + ne.y) / 2.0);
   tmp     = pt - center;
   theta   = atan2( tmp.y , tmp.x ) * 180 / _PI;
   if (theta < 0) theta += 360;
@@ -152,7 +169,6 @@ double distance2object( TrkPoint pt, TrkPoint nw, TrkPoint se){
   switch (quad) {
  
   case 0:{//first quadrant
-    TrkPoint ne(se.x, nw.y);
     tmp = pt - ne;
     if (tmp.x < 0) return abs(pt.y - ne.y);
     if (tmp.y < 0) return abs(pt.x - ne.x);
@@ -160,6 +176,7 @@ double distance2object( TrkPoint pt, TrkPoint nw, TrkPoint se){
   }
   
   case 1:{//second
+    TrkPoint nw(sw.x, ne.y);
     tmp = pt - nw;
     if (tmp.x > 0) return abs(pt.y - nw.y);
     if (tmp.y < 0) return abs(pt.x - nw.x);
@@ -167,7 +184,6 @@ double distance2object( TrkPoint pt, TrkPoint nw, TrkPoint se){
   }
   
   case 2:{//third
-    TrkPoint sw(nw.x, se.y);
     tmp = pt - sw;
     if (tmp.x > 0) return abs(pt.y - sw.y);
     if (tmp.y > 0) return abs(pt.x - sw.x);
@@ -175,6 +191,7 @@ double distance2object( TrkPoint pt, TrkPoint nw, TrkPoint se){
   }
   
   case 3:{//fourth
+    TrkPoint se(ne.x, sw.y);
     tmp = pt - se;
     if (tmp.x < 0) return abs(pt.y - se.y);
     if (tmp.y > 0) return abs(pt.x - se.x);
@@ -191,6 +208,6 @@ double distance2object( TrkPoint pt, TrkPoint nw, TrkPoint se){
 string set2str(set<int> & st) {
   stringstream ss;
   for (auto & it : st)
-    ss << it;
+    ss << it << " ";
   return ss.str();
 }
