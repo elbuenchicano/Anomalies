@@ -332,6 +332,8 @@ void AnomalieControl::testing() {
   //............................................................................
 
   loadDescribedGraphs(graph_file, graph_test);
+
+
   auto voc = cutil_load2strv(voc_file);
   for (auto &graph : graph_test) {
     for (auto &node : graph.listNodes_) {
@@ -380,9 +382,11 @@ Mat AnomalieControl::show(int frame) {
 void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file) {
   
   set<string> voc;
+  
   for (auto &graph : lst){
     for (auto &node : graph.listNodes_) {
-      set<int> objects;
+      set<int> objects; 
+       
       for (auto &par : node.objectList_) {
         objects.insert(par.first.data_.id_);
       }

@@ -33,7 +33,7 @@ void loadFrameItems(  vector<string >&vline, list<FrameItem>::iterator &frame,
   //containing the id and positions 
   //string for person
   string subject = "person";
-  int i, j;
+  size_t i, j;
   vector<int> vint;
   if (vline.size() == 10) {
     vint.resize(vline.size());
@@ -133,13 +133,35 @@ void loadDescribedGraphs( string file ,
 void resumingGraphs( list<BaseDefinitions_tr::graphType> & src,
                      list<BaseDefinitions_tr::graphType> & dst) {
 
+  dst.clear();
   for (auto & gr : src) {
     BaseDefinitions_tr::graphType newg;
-    auto it = gr.listNodes_.begin();
-    ++it;
-    for (; it != gr.listNodes_.end(); ++it) {
+    for (auto & graph: src) {
+      
 
+      auto it = graph.listNodes_.begin();
+      set<int> objects;
+
+      for (auto &par : it->objectList_) {
+        objects.insert(par.first.data_.id_);
+      }
+      auto  str = set2str(objects);
+      
+      newg.listNodes_.push_back(*it);
+      it++;
+      for (;it != graph.listNodes_.end(); ++it) {
+        
+        for (auto &par : it->objectList_) {
+          objects.insert(par.first.data_.id_);
+        }
+        auto  str2 = set2str(objects);
+        if (str != str2) {
+          newg.listNodes_.push_back(*it);
+        }
+        str = str2;
+      }
     }
+    dst.push_back(newg);
 
   }
 }

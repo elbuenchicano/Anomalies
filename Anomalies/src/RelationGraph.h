@@ -7,6 +7,7 @@
 #include <memory>
 #include <list>
 #include <ostream>
+#include <set>
 
 //General definitions
 
@@ -45,6 +46,12 @@ struct RelationNodeSubject {
     tObjData newObject(obj);
     objectList_.push_back(objectPair(newObject, edgeData));
   }
+
+  void operator = (const subjecType & nodes) {
+    data_ = nodes.data_;
+    objectList_ = nodes.objectList_;
+  }
+  
 };
 
 //______________________________________________________________________________
