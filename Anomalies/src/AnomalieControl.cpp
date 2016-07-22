@@ -36,6 +36,9 @@ void AnomalieControl::run() {
     training();
     break;
   case 3:
+    testing();
+    break;
+  case 4:
     show();
     break;
   default:
@@ -332,8 +335,6 @@ void AnomalieControl::testing() {
   //............................................................................
 
   loadDescribedGraphs(graph_file, graph_test);
-
-  cout << "hello";
 
   auto voc = cutil_load2strv(voc_file);
   for (auto &graph : graph_test) {
