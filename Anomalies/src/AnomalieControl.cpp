@@ -324,17 +324,20 @@ void AnomalieControl::training() {
 ////////////////////////////////////////////////////////////////////////////////
 
 void AnomalieControl::testing() {
-  string  voc_file;
-  string  graph_file;
+  string  voc_file,
+          graph_file,
+          out_file;
   int     pos;
   graphLstT graph_test;
   //............................................................................
-  fs_main_["testing_voc_file"] >> voc_file;
-  fs_main_["testing_graph_file"] >> graph_file;
-
+  fs_main_["testing_voc_file"]    >> voc_file;
+  fs_main_["testing_graph_file"]  >> graph_file;
+  fs_main_["testing_out_file"]    >> out_file;
   //............................................................................
 
   loadDescribedGraphs(graph_file, graph_test);
+
+  ofstream arc(out_file);
 
   auto voc = cutil_load2strv(voc_file);
   for (auto &graph : graph_test) {
@@ -345,13 +348,13 @@ void AnomalieControl::testing() {
       auto  str = set2str(objects);
 
       if (cutil_bin_search<string>(voc, str, pos)) {
-        cout << "Warning: Frame" << graph.listNodes_.begin()->data_.id_ << "/n";
-        cout << "Unknown word: " << str << "/n";
+        arc << "Warning: Frame" << graph.listNodes_.begin()->data_.id_ << "/n";
+        arc << "Unknown word: " << str << "/n";
       }
     }
   }
 
-
+  arc.close();
 }
 
 
