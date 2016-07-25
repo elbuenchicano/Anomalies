@@ -39,4 +39,10 @@ void resumingGraphs     ( list<BaseDefinitions_tr::graphType> &,
 //set items to string
 string set2str          ( set<int> &);
 
+//returning the graph histogram 
+Mat_<int> graphHistrogram   ( BaseDefinitions_tr::graphType &, 
+                              map<string, int>  &,
+                              set<string> &);
+
+
 #endif// _SUPPORT_

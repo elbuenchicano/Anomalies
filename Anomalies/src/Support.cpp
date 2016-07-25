@@ -233,3 +233,37 @@ string set2str(set<int> & st) {
     ss << it << " ";
   return ss.str();
 }
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+Mat_<int>   graphHistrogram(  BaseDefinitions_tr::graphType & graph,
+                              map<string, int>  & dist,
+                              set<string> & voc) {
+  Mat_<int> res(1, voc.size());
+  for (auto &node : graph.listNodes_) {
+    set<int> objects;
+
+    for (auto &par : node.objectList_) {
+      objects.insert(par.first.data_.id_);
+    }
+    auto  str = set2str(objects);
+    auto  it  = dist.find(str);
+    if(it != dist.end())
+      ++dist[str];
+  }
+  int cont = 0;
+  for (auto & it : dist) {
+    res(1, cont++) = it.second;
+    it.second = 0;
+  }
+  return res;
+}
+
+
+
+
+
+
+
+
+

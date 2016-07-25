@@ -40,7 +40,14 @@ class AnomalieControl
   //create dictionary 
   //receives graph list 
   void dictionaryBuild  ( graphLstT  & /*lst*/,
-                          string     & /*out_file*/);
+                          string     & /*out_file*/,
+                          set<string> & /*voc*/);
+
+  //creates distributions histograms over the vocabulary use
+  void distributions    ( graphLstT   & /*lst*/,
+                          string      & /*out_file*/,
+                          set<string> & /*voc*/);
+
   
   //return image by request
   Mat show              ( int );

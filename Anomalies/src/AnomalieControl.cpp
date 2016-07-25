@@ -293,17 +293,19 @@ void AnomalieControl::show() {
 
 void AnomalieControl::training() {
   string  token,
-    directory,
-    out_voc_file;
+          directory,
+          out_voc_file,
+          out_dist_file;
 
   cutil_file_cont graph_files;
 
   graphLstT       graph_list;
 
   //............................................................................
-  fs_main_["training_token"] >> token;
-  fs_main_["training_directory"] >> directory;
+  fs_main_["training_token"]        >> token;
+  fs_main_["training_directory"]    >> directory;
   fs_main_["training_out_voc_file"] >> out_voc_file;
+  fs_main_["training_out_dist_file"]>> out_dist_file;
 
 
   //............................................................................
@@ -315,8 +317,15 @@ void AnomalieControl::training() {
     cout << file << endl;
     loadDescribedGraphs(file, graph_list);
   }
-  dictionaryBuild(graph_list, out_voc_file);
-  cout << "Written in " << out_voc_file << endl;
+  //............................................................................
+  //saving vocabulary in file
+  set<string> voc;
+  dictionaryBuild(graph_list, out_voc_file, voc);
+  
+  //,...........................................................................
+  //recording the distributions
+  distributions(graph_list, out_dist_file, voc);
+
 
 }
 
@@ -333,8 +342,8 @@ void AnomalieControl::testing() {
   fs_main_["testing_voc_file"]    >> voc_file;
   fs_main_["testing_graph_file"]  >> graph_file;
   fs_main_["testing_out_file"]    >> out_file;
+  
   //............................................................................
-
   loadDescribedGraphs(graph_file, graph_test);
 
   ofstream arc(out_file);
@@ -384,9 +393,10 @@ Mat AnomalieControl::show(int frame) {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file) {
+void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file, 
+                                      set<string> & voc) {
   
-  set<string> voc;
+  voc.clear();
   
   for (auto &graph : lst){
     for (auto &node : graph.listNodes_) {
@@ -401,9 +411,31 @@ void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file) {
     }
   }
   ofstream arc(out_file);
+  cout << "Written in " << out_file << endl;
   cutil_cont2os(arc, voc, "\n");
   arc.close();
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+void AnomalieControl::distributions(  graphLstT &lst, string &out_file,
+                                      set<string> & voc) {
+  map <string, int> dist;
+
+  //initalizing with zero values
+  for (auto & it : voc)
+    dist[it] = 0;
+
+  Mat_<int> histograms;
+  //creating for each graph
+  for (auto &graph : lst) {
+    auto h = graphHistrogram(graph, dist, voc);
+    histograms.push_back(h);
+  }
+
+  FileStorage fs(out_file, FileStorage::WRITE);
+  cout  << "Written in "  << out_file << endl;
+  fs    << "Histograms"   << histograms;
+
+
+}
