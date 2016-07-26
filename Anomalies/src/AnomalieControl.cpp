@@ -166,7 +166,7 @@ void AnomalieControl::graphBuilding() {
         //auto dist2 = norm(subCenter - TrkPoint((nw.x + se.x) / 2.0, (nw.y + se.y) / 2));
 
         if (dist < distance_obj_thr) {
-          nearest->graph_.addObjectRelation(ActorLabel(obj[0], obj_pos),dist);
+          nearest->graph_.addObjectRelation(ActorLabel(obj[0], obj_pos), (dist<0?0:dist) );
         }
         ++obj_pos;
       }

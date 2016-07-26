@@ -231,7 +231,7 @@ string set2str(set<int> & st) {
   stringstream ss;
   for (auto & it : st)
     ss << it << " ";
-  return ss.str();
+  return ss.str().substr(0,ss.str().size()-1);
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -253,7 +253,7 @@ Mat_<int>   graphHistrogram(  BaseDefinitions_tr::graphType & graph,
   }
   int cont = 0;
   for (auto & it : dist) {
-    res(1, cont++) = it.second;
+    res(0, cont++) = it.second;
     it.second = 0;
   }
   return res;
