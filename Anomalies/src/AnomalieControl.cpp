@@ -36,9 +36,12 @@ void AnomalieControl::run() {
     training();
     break;
   case 3:
-    testing();
+    testing1();
     break;
   case 4:
+    testing2();
+    break;
+  case 10:
     show();
     break;
   default:
@@ -213,7 +216,8 @@ void AnomalieControl::show() {
   mfVideoSequence seq(video_file);
   loadFrameList(seq_file, frame_list, frame_step_, objects_);
 
-  loadDescribedGraphs(graph_file, graphs);
+
+  loadDescribedGraphs(graph_file, graphs, nullptr);
 
   //............................................................................
   Mat   img;
@@ -295,16 +299,21 @@ void AnomalieControl::training() {
   string  token,
           directory,
           out_voc_file,
-          out_dist_file;
+          out_dist_file,
+          out_obs_file;
 
   cutil_file_cont graph_files;
 
   graphLstT       graph_list;
 
+  set<int>        observedObjs;
+
+ 
   //............................................................................
   fs_main_["training_token"]        >> token;
   fs_main_["training_directory"]    >> directory;
   fs_main_["training_out_voc_file"] >> out_voc_file;
+  fs_main_["training_out_obs_file"] >> out_obs_file;
   fs_main_["training_out_dist_file"]>> out_dist_file;
 
 
@@ -315,39 +324,51 @@ void AnomalieControl::training() {
   list_files(graph_files, directory.c_str(), token.c_str());
   for (auto & file : graph_files) {
     cout << file << endl;
-    loadDescribedGraphs(file, graph_list);
+    loadDescribedGraphs(file, graph_list, &observedObjs);
   }
+
   //............................................................................
   //saving vocabulary in file
-  set<string> voc;
-  dictionaryBuild(graph_list, out_voc_file, voc);
+  //set<string> voc;
+  //dictionaryBuild(graph_list, out_voc_file, voc);
   
-  //,...........................................................................
-  //recording the distributions
-  distributions(graph_list, out_dist_file, voc);
 
+  //............................................................................
+  //recording the distributions
+  //distributions(graph_list, out_dist_file, voc);
+
+  //............................................................................
+  //saving the observed objects
+  ofstream arc(out_obs_file);
+  cutil_cont2os(arc, observedObjs, "\n");
+  arc.close();
+  
+  map<string, int> voc;
+  distributionBuild(graph_list, out_dist_file, observedObjs, voc);
+  
 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::testing() {
+void AnomalieControl::testing1() {
   string  voc_file,
           graph_file,
           out_file;
   int     pos;
   graphLstT graph_test;
   //............................................................................
-  fs_main_["testing_voc_file"]    >> voc_file;
-  fs_main_["testing_graph_file"]  >> graph_file;
-  fs_main_["testing_out_file"]    >> out_file;
+  fs_main_["testing1_voc_file"]    >> voc_file;
+  fs_main_["testing1_graph_file"]  >> graph_file;
+  fs_main_["testing1_out_file"]    >> out_file;
   
   //............................................................................
-  loadDescribedGraphs(graph_file, graph_test);
-
+  loadDescribedGraphs(graph_file, graph_test, nullptr);
+  
+  //............................................................................
+  //first level anomalie recognition 
   ofstream arc(out_file);
-
   auto voc = cutil_load2strv(voc_file);
   for (auto &graph : graph_test) {
     for (auto &node : graph.listNodes_) {
@@ -356,16 +377,61 @@ void AnomalieControl::testing() {
         objects.insert(par.first.data_.id_);
       auto  str = set2str(objects);
 
-      if (cutil_bin_search<string>(voc, str, pos)) {
+      if (algoUtil_bin_search<string>(voc, str, pos)) {
         arc << "Warning: Frame" << graph.listNodes_.begin()->data_.id_ << "/n";
         arc << "Unknown word: " << str << "/n";
       }
     }
   }
-
   arc.close();
+  //TO DO: present in images 
+ 
+
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void AnomalieControl::testing2() {
+  string  histo_file,
+          graph_file,
+          obs_file,
+          out_file;
+
+  graphLstT graph_test;
+  
+  Mat_<int> histos;
+
+  double    thr;
+  //............................................................................
+  
+  fs_main_["testing2_histo_file"] >> histo_file;
+  fs_main_["testing2_graph_file"] >> graph_file;
+  fs_main_["testing2_out_file"]   >> out_file;
+  fs_main_["testing2_obs_file"]   >> obs_file;
+  fs_main_["testing2_thr"]        >> thr;
+
+  //............................................................................
+  loadDescribedGraphs(graph_file, graph_test, nullptr);
+  FileStorage fs(histo_file, FileStorage::READ);
+  fs["Histograms"] >> histos;
+
+  //............................................................................
+  //second level anomalie recognition
+  auto vstr = cutil_load2strv(obs_file);
+  set<int> obsO;
+  for (auto &it : vstr)
+    obsO.insert(stoi(it));
+
+  map<string, int> voc;
+  distributionPermutation(obsO, voc);
+
+  distributionPermutation(obsO, voc);
+  for (auto &graph : graph_test) {
+    auto h = distribution(graph, voc);
+
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -418,6 +484,24 @@ void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+void AnomalieControl::listObservedObjs( graphLstT &lst, string &out_file,
+                                        set<int> &voc){
+  voc.clear();
+
+  for (auto &graph : lst)
+    for (auto &node : graph.listNodes_) 
+      for (auto &par : node.objectList_) 
+        voc.insert(par.first.data_.id_);
+  ofstream arc(out_file);
+  cout << "Written in " << out_file << endl;
+  cutil_cont2os(arc, voc, "\n");
+  arc.close();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 void AnomalieControl::distributions(  graphLstT &lst, string &out_file,
                                       set<string> & voc) {
   map <string, int> dist;
@@ -439,3 +523,54 @@ void AnomalieControl::distributions(  graphLstT &lst, string &out_file,
 
 
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void AnomalieControl::distributionBuild(  graphLstT   &lst, string &out_file,
+                                          set<int>    &obsO,
+                                          map<string,int> & voc) {
+
+  voc.clear();
+  distributionPermutation(obsO, voc);
+
+  Mat_<int> histograms;
+  for (auto &graph : lst) {
+    auto h = distribution(graph, voc);
+    histograms.push_back(h);
+  }
+
+  //saving to file 
+
+  FileStorage fs(out_file, FileStorage::WRITE);
+  cout  << "Written in " << out_file << endl;
+  fs    << "Histograms" << histograms;
+}
+
+Mat_<int> AnomalieControl::distribution ( graphType    &graph,
+                                          map<string, int>  &dist){
+  
+  Mat_<int> histo(1, dist.size());
+  histo = histo * 0;
+  vector<string> tmp;
+
+  for (auto &node : graph.listNodes_) {
+    set<int> objects;
+
+    for (auto &par : node.objectList_) {
+      objects.insert(par.first.data_.id_);
+    }
+    auto  str = set2str(objects);
+    tmp = cutil_string_split(str);
+
+    if (tmp.size() > 1) {
+      for (auto &it : tmp)
+        ++histo(0, dist[it]);
+    }
+    ++histo(0, dist[str]);  
+  }
+
+  return histo;
+}
+
+

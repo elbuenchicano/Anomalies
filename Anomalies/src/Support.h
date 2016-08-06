@@ -9,7 +9,9 @@
 /////FEAT EXTRACT............................................................... 
 ////GRAPH BUILD.................................................................
 //load objects names and ids
-void loadDefinitions    ( string, map<string, int> & , map<int, string> &);
+void loadDefinitions    ( string, 
+                          map<string, int> & , 
+                          map<int, string> &);
 
 //load frame items  
 void loadFrameItems     ( vector<string> &, 
@@ -30,7 +32,9 @@ double  distance2object(  TrkPoint /*point*/,
 ////GRAPH LOADING 
 
 //load described graph
-void loadDescribedGraphs( string, list<BaseDefinitions_tr::graphType> &);
+void loadDescribedGraphs( string, 
+                          list<BaseDefinitions_tr::graphType> &, 
+                          set<int> *);
 
 //resuming graph, clean consecutive atomic nodes
 void resumingGraphs     ( list<BaseDefinitions_tr::graphType> &,
@@ -43,6 +47,11 @@ string set2str          ( set<int> &);
 Mat_<int> graphHistrogram   ( BaseDefinitions_tr::graphType &, 
                               map<string, int>  &,
                               set<string> &);
+
+//creating the map for istograms
+void distributionPermutation( set<int> &, map<string, int> &);
+
+
 
 
 #endif// _SUPPORT_

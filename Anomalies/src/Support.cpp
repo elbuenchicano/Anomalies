@@ -93,7 +93,8 @@ void loadFrameList( string file, list<FrameItem> & frameList, short frame_step,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 void loadDescribedGraphs( string file , 
-                          list<BaseDefinitions_tr::graphType>& graphsList)
+                          list<BaseDefinitions_tr::graphType>& graphsList,
+                          set<int> * observedObjs = nullptr)
 {
   ifstream    arc(file);
   double      lastEdge;
@@ -120,6 +121,10 @@ void loadDescribedGraphs( string file ,
       case 'O': {
         auto head = graphsList.begin();
         head->addObjectRelation(ActorLabel(stoi(vline[1]), stoi(vline[2])), lastEdge);
+
+        //adding the object to observed objects into the set
+        if(observedObjs)
+          observedObjs->insert(stoi(vline[1]));
         break;
       }
       }
@@ -239,7 +244,7 @@ string set2str(set<int> & st) {
 Mat_<int>   graphHistrogram(  BaseDefinitions_tr::graphType & graph,
                               map<string, int>  & dist,
                               set<string> & voc) {
-  Mat_<int> res(1, voc.size());
+  Mat_<int> res(1, static_cast<int>(voc.size()));
   for (auto &node : graph.listNodes_) {
     set<int> objects;
 
@@ -259,6 +264,45 @@ Mat_<int>   graphHistrogram(  BaseDefinitions_tr::graphType & graph,
   return res;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+inline string set_bin_vector(vector<bool> &bin, vector<int> &objs) {
+  stringstream  ss;
+   
+  for (size_t i = 0; i < bin.size(); ++i) {
+    if (bin[i])
+      ss << objs[i] << " ";
+  }
+  return ss.str().substr(0, ss.str().size() - 1);
+}
+
+void distributionPermutation(set<int> &objs, map<string, int> & out) {
+
+  
+  vector<int> vobjs(objs.begin(), objs.end());
+  int n     = static_cast<int>(objs.size());
+  int per   = static_cast<int>(pow(2,n));
+  vector<string>   permutations(per);
+  string        str;
+  vector<bool>  bin;
+
+  for (int i = 0; i < per; ++i) {
+    bin = algoUtil_int2boolVec(i,n);
+    str = set_bin_vector(bin, vobjs);
+    permutations[i] = str;
+  }
+
+
+  sort(permutations.begin(), permutations.end(), cmpStrNum);
+
+
+  auto it = permutations.begin();
+  for (size_t i = 0; i < permutations.size(); ++i, ++it) 
+    out[*it] = static_cast<int>(i);
+  
+  /**/
+}
 
 
 

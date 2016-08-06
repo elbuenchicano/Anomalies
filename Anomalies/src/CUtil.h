@@ -88,26 +88,6 @@ std::string cutil_string_join(std::vector<std::string> &, int);
 /////////////////////////////////////////////////////////////////////////////
 //algorithms.................................................................
 
-//t tipe must have operator < and == overloaded
-template <class t>
-bool cutil_bin_search(std::vector<t> & vec, t val, int & pos,
-                      int ini = 0, 
-                      int fin = 1<<31) {
-  if (fin >= vec.size())
-      fin = static_cast<int>(vec.size() - 1);
-  
-  for (int m = (ini + fin) >> 1; ini <= fin; m = (ini + fin) >> 1) {
-    if (vec[m] == val) {
-      pos = m;
-      return true;
-    }
-    if (vec[m] > val)
-      fin = m - 1;
-    else
-      ini = m + 1;
-  }
-  return false;
-}
 
 
 

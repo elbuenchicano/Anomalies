@@ -29,7 +29,8 @@ class AnomalieControl
   
   void training     ();
 
-  void testing      ();
+  void testing1     ();
+  void testing2     ();
 
   void show();
 
@@ -39,16 +40,29 @@ class AnomalieControl
   
   //create dictionary 
   //receives graph list 
-  void dictionaryBuild  ( graphLstT  & /*lst*/,
-                          string     & /*out_file*/,
-                          set<string> & /*voc*/);
+  void dictionaryBuild  ( graphLstT   &       /*lst*/,
+                          string      &       /*out_file*/,
+                          set<string> &       /*voc*/);
 
   //creates distributions histograms over the vocabulary use
-  void distributions    ( graphLstT   & /*lst*/,
-                          string      & /*out_file*/,
-                          set<string> & /*voc*/);
+  void distributions    ( graphLstT   &       /*lst*/,
+                          string      &       /*out_file*/,
+                          set<string> &       /*voc*/);
 
-  
+  void distributionBuild( graphLstT   &       /*lst*/,
+                          string      &       /*out_file*/,
+                          set<int>    &       /*obsO*/,                          
+                          map<string, int> &  /*voc*/);
+
+  //creates distribution histograms over only with permutations
+  Mat_<int> distribution( graphType   &       /*graph*/,
+                          map<string, int> &  /*dist*/);
+
+  //numerates the observed objects
+  void listObservedObjs ( graphLstT   &       /*lst*/,
+                          string      &       /*out_file*/,
+                          set<int>    &       /*voc*/);
+
   //return image by request
   Mat show              ( int );
 

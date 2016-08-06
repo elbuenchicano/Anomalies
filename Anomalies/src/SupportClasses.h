@@ -15,6 +15,7 @@
 #include "RelationGraph.h"
 #include "MathUtils.h"
 #include "fmSequence.h"
+#include "AlgoUtil.h"
 
 #include <fstream>
 #include <iostream>

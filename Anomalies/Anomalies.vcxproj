@@ -146,6 +146,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AlgoUtil.h" />
     <ClInclude Include="src\MathUtils.h" />
     <ClInclude Include="src\Support.h" />
     <ClInclude Include="src\AnomalieControl.h" />
@@ -161,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Anomalies.cpp" />
+    <ClCompile Include="src\AlgoUtil.cpp" />
     <ClCompile Include="src\AnomalieControl.cpp" />
     <ClCompile Include="src\CUtil.cpp" />
     <ClCompile Include="src\MathUtils.cpp" />
