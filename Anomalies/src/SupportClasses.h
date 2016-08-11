@@ -75,7 +75,8 @@ struct Actor_ {
   int             old_ = 0,
                   frame_ini_ = 0;
 
-  bool            visited = true;
+  bool            visited = true,
+                  picked  = false;
 
   //main functions..............................................................
   void save2file(string out_file) {

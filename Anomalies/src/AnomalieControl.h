@@ -30,9 +30,10 @@ class AnomalieControl
   void training     ();
 
   void testing1     ();
+
   void testing2     ();
 
-  void show();
+  void show         ();
 
   //secondary functions.........................................................
 
@@ -64,7 +65,13 @@ class AnomalieControl
                           set<int>    &       /*voc*/);
 
   //return image by request
-  Mat show              ( int );
+  Mat   show            ( int );
+
+  void  show            ( graphLstT   &       /*lst*/,
+                          string      &       /*video_file*/,
+                          string      &       /*seq_file*/,
+                          float               /*rze*/,
+                          list<bool>  *       /*anomalies*/);
 
   //load graph from file
   

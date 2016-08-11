@@ -114,6 +114,7 @@ void AnomalieControl::graphBuilding() {
       //circle(img, hand2, 5, Scalar(255, 0, 255), -1, 8);
 
       //for each active subject
+
       for (auto ite = active_sub.begin(); ite != active_sub.end(); ) {
         
         //saving the graphs if the time life is over
@@ -126,7 +127,7 @@ void AnomalieControl::graphBuilding() {
         else {
           TrkPoint  prd = ite->trk_.predict();
           auto dist = cv::norm(prd - subCenter);
-          if (dist < distance_sub_thr) {
+          if (dist < distance_sub_thr && !ite->picked) {
             mindist = dist;
             nearest = ite;
           }
@@ -143,6 +144,7 @@ void AnomalieControl::graphBuilding() {
         nearest->graph_.addSubjectNode(ActorLabel(frame.frameNumber, sub_pos));
       }
       else {
+        nearest->picked = true;
         nearest->graph_.addSubjectNode(ActorLabel(frame.frameNumber, sub_pos));
         nearest->trk_.estimate(subCenter);
       }
@@ -180,6 +182,7 @@ void AnomalieControl::graphBuilding() {
       if (it.visited) {
         it.old_ = time_life;
         it.visited = false;
+        it.picked  = false;
       }
       else
         --it.old_;
@@ -198,98 +201,21 @@ void AnomalieControl::show() {
           video_file,
           graph_file;
 
-  double  rze;
+  float   rze;
 
   list<FrameItem>   frame_list;
 
   graphLstT         graphs;
-
-  typedef BaseDefinitions_tr::graphType::lstNodeType lstNodeType;
-
+  
   //............................................................................
   fs_main_["show_seq_file"]   >> seq_file;
   fs_main_["show_video_file"] >> video_file;
   fs_main_["show_resize"]     >> rze;
   fs_main_["show_graph_file"] >> graph_file;
-
+  
   //............................................................................
-  mfVideoSequence seq(video_file);
-  loadFrameList(seq_file, frame_list, frame_step_, objects_);
-
-
   loadDescribedGraphs(graph_file, graphs, nullptr);
-
-  //............................................................................
-  Mat   img;
-  int   gcont;
-  for (auto frm = frame_list.begin(); frm != frame_list.end() &&
-    seq.getImage(img, frm->frameNumber); frm++) {
-
-    //drawing frame number
-    stringstream lblframe;
-    lblframe << "Frame " << frm->frameNumber;
-    putText(img, lblframe.str(), Point(0,20), CV_FONT_HERSHEY_PLAIN, 2.0, Scalar(0, 0, 255));
-
-    //for each graph
-    gcont = 0;
-    for (auto graphs_ite = graphs.begin(); graphs_ite != graphs.end(); graphs_ite++) {
-
-      if (rze > 0)resize(img, img, Size(), rze, rze);
-      if (graphs_ite->listNodes_.begin() != graphs_ite->listNodes_.end() &&
-        graphs_ite->listNodes_.begin()->data_.id_ == frm->frameNumber) {
-
-        auto head = graphs_ite->listNodes_.begin();
-        Point p1(frm->sub_obj[0][head->data_.list_idx_][1],
-          frm->sub_obj[0][head->data_.list_idx_][2]);
-
-        Point p2(frm->sub_obj[0][head->data_.list_idx_][3],
-          frm->sub_obj[0][head->data_.list_idx_][4]);
-
-        Point hand1(frm->sub_obj[0][head->data_.list_idx_][6],
-          frm->sub_obj[0][head->data_.list_idx_][7]);
-
-        Point hand2(frm->sub_obj[0][head->data_.list_idx_][8],
-          frm->sub_obj[0][head->data_.list_idx_][9]);
-
-        //drawing subject
-        rectangle(img, p1, p2, Scalar(255, 0, 0));
-
-        //drawing hands
-
-        circle(img, hand1, 5, Scalar(255, 0, 255), -1, 8);
-        circle(img, hand2, 5, Scalar(255, 0, 255), -1, 8);
-
-        //put label
-        stringstream sublbl;
-        sublbl << "Sub" << gcont;
-        putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(255, 0, 0));
-
-        for (auto &ob : head->objectList_) {
-          Point p1(frm->sub_obj[1][ob.first.data_.list_idx_][1],
-            frm->sub_obj[1][ob.first.data_.list_idx_][2]);
-
-          Point p2(frm->sub_obj[1][ob.first.data_.list_idx_][3],
-            frm->sub_obj[1][ob.first.data_.list_idx_][4]);
-
-          //drawing rectangle
-          stringstream sublbl;
-          sublbl << objects_rev_[ob.first.data_.id_] << " Sub" << gcont;
-          rectangle(img, p1, p2, Scalar(0, 150, 255));
-          putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 150, 255));
-        }
-
-        graphs_ite->listNodes_.pop_front();
-      }
-
-    }
-    imshow("Frame", img);
-    //if (waitKey(30) >= 0) break;
-    cv::waitKey();
-    ++gcont;
-  }
-
-
-
+  show(graphs, video_file, seq_file, rze, nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -308,14 +234,12 @@ void AnomalieControl::training() {
 
   set<int>        observedObjs;
 
- 
   //............................................................................
   fs_main_["training_token"]        >> token;
   fs_main_["training_directory"]    >> directory;
   fs_main_["training_out_voc_file"] >> out_voc_file;
   fs_main_["training_out_obs_file"] >> out_obs_file;
   fs_main_["training_out_dist_file"]>> out_dist_file;
-
 
   //............................................................................
   //First level: atomic anomalies 
@@ -340,6 +264,7 @@ void AnomalieControl::training() {
   //............................................................................
   //saving the observed objects
   ofstream arc(out_obs_file);
+  cout << "Observed ojects saved in: \n" << out_obs_file << endl;
   cutil_cont2os(arc, observedObjs, "\n");
   arc.close();
   
@@ -403,6 +328,8 @@ void AnomalieControl::testing2() {
   Mat_<int> histos;
 
   double    thr;
+
+  bool      visual;
   //............................................................................
   
   fs_main_["testing2_histo_file"] >> histo_file;
@@ -410,6 +337,10 @@ void AnomalieControl::testing2() {
   fs_main_["testing2_out_file"]   >> out_file;
   fs_main_["testing2_obs_file"]   >> obs_file;
   fs_main_["testing2_thr"]        >> thr;
+  fs_main_["testing2_visual"]     >> visual;
+
+  
+
 
   //............................................................................
   loadDescribedGraphs(graph_file, graph_test, nullptr);
@@ -425,12 +356,54 @@ void AnomalieControl::testing2() {
 
   map<string, int> voc;
   distributionPermutation(obsO, voc);
+  
+  Mat_<int>     line;
+  double        dist, 
+                min = FLT_MAX;
+  stringstream  wrg;
 
-  distributionPermutation(obsO, voc);
+  list<bool>    anomalyList;
+
   for (auto &graph : graph_test) {
     auto h = distribution(graph, voc);
-
+    for (int i = 0; i < histos.rows; ++i) {
+      line = histos.row(i);
+      dist = norm(h, line);
+      if (dist < min) min = dist;
+    }
+    if (dist > thr) {
+      wrg << "Warning Graph!" << graph.listNodes_.begin()->data_.id_ << endl;
+      anomalyList.push_back(true);
+    }
+    else
+      anomalyList.push_back(false);
   }
+
+  //............................................................................
+  //savin in output file
+  cout << wrg.str();
+  
+  if (out_file != "") {
+    ofstream arc(out_file);
+    cout << "Warnings saved in: " << out_file << endl;
+    arc << wrg.str();
+    arc.close();
+  }
+
+  //............................................................................
+  //show anomalies in screen image sequence
+
+  if (visual) {
+    string  video_file,
+            seq_file;
+    double  rze;
+    fs_main_["show_seq_file"]   >> seq_file;
+    fs_main_["show_video_file"] >> video_file;
+    fs_main_["show_resize"]     >> rze;
+    
+    show(graph_test, video_file, seq_file, rze, &anomalyList);
+  }
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -550,7 +523,7 @@ void AnomalieControl::distributionBuild(  graphLstT   &lst, string &out_file,
 Mat_<int> AnomalieControl::distribution ( graphType    &graph,
                                           map<string, int>  &dist){
   
-  Mat_<int> histo(1, dist.size());
+  Mat_<int> histo(1, static_cast<int>(dist.size()));
   histo = histo * 0;
   vector<string> tmp;
 
@@ -573,4 +546,100 @@ Mat_<int> AnomalieControl::distribution ( graphType    &graph,
   return histo;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void AnomalieControl::show( graphLstT   &graphs,    string  &video_file, 
+                            string      &seq_file,  float   rze,
+                            list<bool>  *anomalies) {
+  Mat   img;
 
+  int   gcont;
+
+  list<FrameItem>   frame_list;
+  
+  list<bool>::iterator ait;
+
+  //............................................................................
+  mfVideoSequence seq(video_file);
+  loadFrameList(seq_file, frame_list, frame_step_, objects_);
+  
+  //............................................................................
+  
+  //begins in the listframe and the same time extracts the image by framenumber
+  for (auto frm = frame_list.begin(); frm != frame_list.end() &&
+    seq.getImage(img, frm->frameNumber); frm++) {
+
+    //drawing frame number
+    stringstream lblframe;
+    lblframe << "Frame " << frm->frameNumber;
+    putText(img, lblframe.str(), Point(0, 20), CV_FONT_HERSHEY_PLAIN, 2.0, Scalar(0, 0, 255));
+
+    //..........................................................................
+    //for each graph
+    gcont = 0;
+
+    //if vector anomalies is on
+    if (anomalies)
+      ait = anomalies->begin();
+
+    for (auto graphs_ite = graphs.begin(); graphs_ite != graphs.end(); graphs_ite++) {
+
+      //resizes the image given the case  
+      if (rze > 0)resize(img, img, Size(), rze, rze);
+
+      if (graphs_ite->listNodes_.begin() != graphs_ite->listNodes_.end() &&
+        graphs_ite->listNodes_.begin()->data_.id_ == frm->frameNumber) {
+
+        auto head = graphs_ite->listNodes_.begin();
+        Point p1(frm->sub_obj[0][head->data_.list_idx_][1],
+          frm->sub_obj[0][head->data_.list_idx_][2]);
+
+        Point p2(frm->sub_obj[0][head->data_.list_idx_][3],
+          frm->sub_obj[0][head->data_.list_idx_][4]);
+
+        Point hand1(frm->sub_obj[0][head->data_.list_idx_][6],
+          frm->sub_obj[0][head->data_.list_idx_][7]);
+
+        Point hand2(frm->sub_obj[0][head->data_.list_idx_][8],
+          frm->sub_obj[0][head->data_.list_idx_][9]);
+
+        //drawing subject
+        rectangle(img, p1, p2, Scalar(255, 0, 0));
+
+        //drawing hands
+
+        circle(img, hand1, 5, Scalar(255, 0, 255), -1, 8);
+        circle(img, hand2, 5, Scalar(255, 0, 255), -1, 8);
+
+        //put label
+        stringstream sublbl;
+        sublbl << "Sub" << gcont;
+        putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(255, 0, 0));
+
+        for (auto &ob : head->objectList_) {
+          Point p1(frm->sub_obj[1][ob.first.data_.list_idx_][1],
+            frm->sub_obj[1][ob.first.data_.list_idx_][2]);
+
+          Point p2(frm->sub_obj[1][ob.first.data_.list_idx_][3],
+            frm->sub_obj[1][ob.first.data_.list_idx_][4]);
+
+          //drawing rectangle
+          stringstream sublbl;
+          sublbl << objects_rev_[ob.first.data_.id_] << " Sub" << gcont;
+          rectangle(img, p1, p2, Scalar(0, 150, 255));
+          putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 150, 255));
+        }
+
+        graphs_ite->listNodes_.pop_front();
+      }
+      if(anomalies)++ait;
+    }
+    cv::imshow("Frame", img);
+    //if (waitKey(30) >= 0) break;
+    cv::waitKey();
+    ++gcont;
+  }
+
+
+
+}
