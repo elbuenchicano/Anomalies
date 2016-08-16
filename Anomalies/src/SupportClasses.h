@@ -16,6 +16,7 @@
 #include "MathUtils.h"
 #include "fmSequence.h"
 #include "AlgoUtil.h"
+#include "Sequence.h"
 
 #include <fstream>
 #include <iostream>
@@ -73,18 +74,16 @@ struct Actor_ {
   graphType       graph_; //interaction graph 
 
   int             old_ = 0,
-                  frame_ini_ = 0;
+                  id_  = 0;
 
   bool            visited = true,
                   picked  = false;
 
   //main functions..............................................................
-  void save2file(string out_file) {
-    ofstream arc(out_file, ios::app);
-    arc << "G " << frame_ini_ << endl;
-    graph_.saving2os(arc);
-    arc << endl;
-    arc.close();
+  void save2file(ostream &os) {
+    os << "G " << id_ << endl;
+    graph_.saving2os(os);
+    os << endl;
   }
   //util functions..............................................................
   void runTrk(TrkPoint Center) {
@@ -99,8 +98,12 @@ struct Actor_ {
 //template trait definition of actor
 typedef Actor_<BaseDefinitions_tr> Actor;
 
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
 struct FrameItem {
   int frameNumber;                  //real frame 
   vector<vector<int> > sub_obj[2];  //0 = subjects 1 = objects

@@ -17,78 +17,6 @@ void loadDefinitions(std::string file,  std::map<std::string, int> &info,
   }
   arc.close();
 }
-//////////////////////////////////////////////////////////////////////////////// 
-////////////////////////////////////////////////////////////////////////////////
-static inline 
-void string2intVec( vector<string> & vec, vector<int> &res,
-                    size_t i, size_t f) {
-  for (size_t it = i, cont = 1; it < f; ++it, ++cont)
-    res[cont] = stoi(vec[it]);
-}
-//////////////////////////////////////////////////////////////////////////////// 
-////////////////////////////////////////////////////////////////////////////////
-void loadFrameItems(  vector<string >&vline, list<FrameItem>::iterator &frame, 
-                      map<string, int> & objs)
-{
-  //containing the id and positions 
-  //string for person
-  string subject = "person";
-  size_t i, j;
-  vector<int> vint;
-  if (vline.size() == 10) {
-    vint.resize(vline.size());
-    vint[0] = objs[vline[0]];
-    string2intVec(vline, vint, 1, vint.size());
-  }
-  else {
-    j = vline.size() - 6;
-    for (i = 1; i <= j; i++) {
-      vline[0] += ' ' + vline[i];
-    }
-    vint.resize(6);
-    string2intVec(vline, vint, j + 1, vint.size());
-    vint[0] = objs[vline[0]];
-  }
-  
-  vint[3] += vint[1];
-  vint[4] += vint[2];
-  frame->sub_obj[vline[0] != subject].push_back(vint);
- 
-}
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-void loadFrameList( string file, list<FrameItem> & frameList, short frame_step,
-                    map<string, int> & objs) {
-  ifstream seq(file);
-  assert(seq.is_open());
-  list<FrameItem> tmp;
-  short nframe = 0;
-  for (string line; getline(seq, line); ) {
-    //cout << line << endl;
-    auto vline = cutil_string_split(line);
-    if (vline.size() > 1) {
-      if (vline[0] == "Frame" ) {
-        FrameItem frm{ stoi(vline[1]) };
-        tmp.push_back(frm);
-      }
-      else {
-        auto it = tmp.end();
-        it--;
-        loadFrameItems(vline, it, objs);
-      }
-    }
-  }
-  seq.close();
-  int cont = 0;
-  frameList.clear();
-  for (auto & item : tmp) {
-    if ((cont++ % frame_step) == 0)
-      frameList.push_back(item);
-  }
-
-
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -305,6 +233,84 @@ void distributionPermutation(set<int> &objs, map<string, int> & out) {
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////OLD FUNCTIONS
+
+
+//////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////
+static inline
+void string2intVec(vector<string> & vec, vector<int> &res,
+  size_t i, size_t f) {
+  for (size_t it = i, cont = 1; it < f; ++it, ++cont)
+    res[cont] = stoi(vec[it]);
+}
+//////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////
+void loadFrameItems(vector<string >&vline, list<FrameItem>::iterator &frame,
+  map<string, int> & objs)
+{
+  //containing the id and positions 
+  //string for person
+  string subject = "person";
+  size_t i, j;
+  vector<int> vint;
+  if (vline.size() == 10) {
+    vint.resize(vline.size());
+    vint[0] = objs[vline[0]];
+    string2intVec(vline, vint, 1, vint.size());
+  }
+  else {
+    j = vline.size() - 6;
+    for (i = 1; i <= j; i++) {
+      vline[0] += ' ' + vline[i];
+    }
+    vint.resize(6);
+    string2intVec(vline, vint, j + 1, vint.size());
+    vint[0] = objs[vline[0]];
+  }
+
+  vint[3] += vint[1];
+  vint[4] += vint[2];
+  frame->sub_obj[vline[0] != subject].push_back(vint);
+
+}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void loadFrameList(string file, list<FrameItem> & frameList, short frame_step,
+  map<string, int> & objs) {
+  ifstream seq(file);
+  assert(seq.is_open());
+  list<FrameItem> tmp;
+  short nframe = 0;
+  for (string line; getline(seq, line); ) {
+    //cout << line << endl;
+    auto vline = cutil_string_split(line);
+    if (vline.size() > 1) {
+      if (vline[0] == "Frame") {
+        FrameItem frm{ stoi(vline[1]) };
+        tmp.push_back(frm);
+      }
+      else {
+        auto it = tmp.end();
+        it--;
+        loadFrameItems(vline, it, objs);
+      }
+    }
+  }
+  seq.close();
+  int cont = 0;
+  frameList.clear();
+  for (auto & item : tmp) {
+    if ((cont++ % frame_step) == 0)
+      frameList.push_back(item);
+  }
+
+
+}
 
 
 

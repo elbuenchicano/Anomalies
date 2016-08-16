@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="src\AlgoUtil.h" />
     <ClInclude Include="src\MathUtils.h" />
+    <ClInclude Include="src\Sequence.h" />
     <ClInclude Include="src\Support.h" />
     <ClInclude Include="src\AnomalieControl.h" />
     <ClInclude Include="src\CUtil.h" />
@@ -166,6 +167,7 @@
     <ClCompile Include="src\AnomalieControl.cpp" />
     <ClCompile Include="src\CUtil.cpp" />
     <ClCompile Include="src\MathUtils.cpp" />
+    <ClCompile Include="src\Sequence.cpp" />
     <ClCompile Include="src\Support.cpp" />
     <ClCompile Include="src\SupportClasses.cpp" />
     <ClCompile Include="src\Tracking.cpp" />

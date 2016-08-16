@@ -54,20 +54,18 @@ void AnomalieControl::run() {
 ////////////////////////////////////////////////////////////////////////////////
 void AnomalieControl::graphBuilding() {
  
-  
   //variables..................................................................
-  list< Actor >     active_sub;
+  double  distance_obj_thr,
+          distance_sub_thr;
 
-  list<FrameItem>   frame_list;
+  float   rze;
 
-  double            distance_obj_thr,
-                    distance_sub_thr;
+  int     time_life;
 
-  int               time_life;
-
-  string            out_file,
-                    seq_file,
-                    out_token;
+  string  out_dir,
+          seq_file,
+          out_token,
+          video_file;
 
   
   //............................................................................
@@ -76,121 +74,20 @@ void AnomalieControl::graphBuilding() {
   fs_main_["featExtract_distance_sub_thr"]  >> distance_sub_thr;
   fs_main_["featExtract_distance_obj_thr"]  >> distance_obj_thr;
   fs_main_["featExtract_time_life"]         >> time_life;
-  fs_main_["featExtract_out_file"]          >> out_file;
+  fs_main_["featExtract_out_dir"]           >> out_dir;
   fs_main_["featExtract_out_token"]         >> out_token;
 
-  //............................................................................
-  loadFrameList(seq_file, frame_list, frame_step_, objects_);
-  out_file += cutil_LastName(seq_file) + out_token;
+  fs_main_["show_video_file"]               >> video_file;
+  fs_main_["show_resize"]                   >> rze;
+  
 
   //............................................................................
-  //Tracking and looking for subjects
-  //for each frame in parsed video
-  for (auto & frame : frame_list) {
-    cout << frame.frameNumber<< endl;
-    //auto img = show(frame.frameNumber);
+  
+  auto str = out_dir + cutil_LastName(seq_file) + out_token;
+  graphBuild( seq_file, video_file, str, rze, distance_obj_thr, distance_sub_thr, 
+              time_life);
 
-    //for each candidate subject update the list 
-    int sub_pos = 0;
-    for (auto & subj : frame.sub_obj[0]) {
-     
-      double    mindist = FLT_MAX;
-      auto      nearest = active_sub.end();
-
-      TrkPoint  subCenter( static_cast<float>( (subj[1] + subj[3]) / 2.0), 
-                           static_cast<float>( (subj[2] + subj[4]) / 2.0) );
-
-      //////////////////////////////////////////////////////////////////////
-      //forget this part when bug is fixed
-      
-      TrkPoint  hand1    ( static_cast<float>( subj[6]),  
-                           static_cast<float>( subj[7])),
-
-                hand2    ( static_cast<float>( subj[8]),  
-                           static_cast<float>( subj[9]));
-      
-
-      //circle(img, hand1, 5, Scalar(255, 0, 255), -1, 8);
-      //circle(img, hand2, 5, Scalar(255, 0, 255), -1, 8);
-
-      //for each active subject
-
-      for (auto ite = active_sub.begin(); ite != active_sub.end(); ) {
-        
-        //saving the graphs if the time life is over
-        if (ite->old_ == 0) {
-          ite->save2file(out_file);
-          auto er = ite;
-          ite++;
-          active_sub.erase(er);
-        }
-        else {
-          TrkPoint  prd = ite->trk_.predict();
-          auto dist = cv::norm(prd - subCenter);
-          if (dist < distance_sub_thr && !ite->picked) {
-            mindist = dist;
-            nearest = ite;
-          }
-          ite->visited = true;
-          ite++;
-        }
-      }
-      
-      if (nearest == active_sub.end()) {
-        active_sub.push_back(Actor());
-        nearest--;
-        nearest->runTrk(subCenter);
-        nearest->frame_ini_ = frame.frameNumber;
-        nearest->graph_.addSubjectNode(ActorLabel(frame.frameNumber, sub_pos));
-      }
-      else {
-        nearest->picked = true;
-        nearest->graph_.addSubjectNode(ActorLabel(frame.frameNumber, sub_pos));
-        nearest->trk_.estimate(subCenter);
-      }
-      //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      //MAY CODING WITH THREADS
-      //........................................................................
-      //for each candidate update the object interaction
-      int obj_pos = 0;
-      for (auto & obj : frame.sub_obj[1]) {
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //distance to hands
-
-        
-
-        TrkPoint  sw( static_cast<float>(obj[1]), static_cast<float>(obj[2])),
-                  ne( static_cast<float>(obj[3]), static_cast<float>(obj[4]));
-
-        auto dist = min ( distance2object (hand1, sw, ne),
-                          distance2object (hand2, sw, ne));
-
-
-        //rectangle(img, nw, se, Scalar(0, 150, 255));
-
-        //auto dist2 = norm(subCenter - TrkPoint((nw.x + se.x) / 2.0, (nw.y + se.y) / 2));
-
-        if (dist < distance_obj_thr) {
-          nearest->graph_.addObjectRelation(ActorLabel(obj[0], obj_pos), (dist<0?0:dist) );
-        }
-        ++obj_pos;
-      }
-      ++sub_pos;
-    }
-    //updating the years 
-    for (auto & it : active_sub) {
-      if (it.visited) {
-        it.old_ = time_life;
-        it.visited = false;
-        it.picked  = false;
-      }
-      else
-        --it.old_;
-    }
-  }  
-  for (auto & it : active_sub) {
-    it.save2file(out_file);
-  }
+  
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -240,6 +137,8 @@ void AnomalieControl::training() {
   fs_main_["training_out_voc_file"] >> out_voc_file;
   fs_main_["training_out_obs_file"] >> out_obs_file;
   fs_main_["training_out_dist_file"]>> out_dist_file;
+
+
 
   //............................................................................
   //First level: atomic anomalies 
@@ -396,7 +295,7 @@ void AnomalieControl::testing2() {
   if (visual) {
     string  video_file,
             seq_file;
-    double  rze;
+    float   rze;
     fs_main_["show_seq_file"]   >> seq_file;
     fs_main_["show_video_file"] >> video_file;
     fs_main_["show_resize"]     >> rze;
@@ -421,7 +320,7 @@ Mat AnomalieControl::show(int frame) {
   fs_main_["show_resize"]     >> rze;
   
   mfVideoSequence seq(video_file);
-  assert(seq.cap_.isOpened());
+  
   Mat img;
   seq.getImage(img, frame);
   return img;
@@ -639,7 +538,118 @@ void AnomalieControl::show( graphLstT   &graphs,    string  &video_file,
     cv::waitKey();
     ++gcont;
   }
+}
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
+void AnomalieControl::graphBuild( string  &seq_file, 
+                                  string  &video_file,
+                                  string  &out_file,
+                                  float   rze,
+                                  double  distance_obj_thr, 
+                                  double  distance_sub_thr,
+                                  int     time_life) {
+  list< Actor >     active_sub;
 
+  Sequence          seq(  frame_step_, seq_file, video_file, rze, 
+                          objects_, objects_rev_);
+
+  //............................................................................
+
+  //Tracking and looking for subjects
+  //for each frame in parsed video
+  stringstream    ss;
+  
+  int graph_count = 0;
+
+  Mat img;
+  for (auto & frame : seq.frames_) {
+    cout << frame.first << endl;
+    
+    //seq.getImage(frame.first, img);
+
+    //for each candidate subject update the list 
+    int sub_pos = 0;
+    for (auto & subj : frame.second.subjects_) {
+
+      double    mindist = FLT_MAX;
+      auto      nearest = active_sub.end();
+
+      for (auto ite = active_sub.begin(); ite != active_sub.end();) {
+
+        //saving the graphs if the time life is over
+        if (ite->old_ == time_life) {
+          ite->save2file(ss);
+          auto er = ite;
+          ++ite;
+          active_sub.erase(er);
+        }
+        else {
+          Point prd = ite->trk_.predict();
+          auto dist = cv::norm(prd - subj.center());
+          if (dist < distance_sub_thr && !ite->picked) {
+            mindist = dist;
+            nearest = ite;
+          }
+          ++ite;
+        }
+      }
+
+      if (nearest == active_sub.end()) {
+        active_sub.push_back(Actor());
+        nearest--;
+        nearest->runTrk(subj.center());
+        nearest->id_ = graph_count++;
+        nearest->graph_.addSubjectNode(ActorLabel(frame.first, sub_pos));
+      }
+      else {
+        nearest->visited  = true;
+        nearest->picked   = true;
+        nearest->graph_.addSubjectNode(ActorLabel(frame.first, sub_pos));
+        TrkPoint center = subj.center();
+        nearest->trk_.estimate(center);
+      }
+      
+      //seq.drawSub(subj, img, Scalar(100, 150, 255), "");
+
+      //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      //MAY CODING WITH THREADS
+      //........................................................................
+      //for each candidate update the object interaction
+      int obj_pos = 0;
+      for (auto & obj : frame.second.objects_) {
+        //distance to hands
+        auto dist = min(  distance2object(subj.h1_, obj.sw_, obj.ne_),
+                          distance2object(subj.h2_, obj.sw_, obj.ne_));
+
+        //seq.drawObj(obj, img, Scalar(0, 255, 0), "");
+
+        if (dist < distance_obj_thr) {
+          nearest->graph_.addObjectRelation(ActorLabel(obj.id_, obj_pos), (dist<0 ? 0 : dist));
+        }
+        ++obj_pos;
+      }
+      ++sub_pos;
+    }
+    //updating the years 
+    for (auto & it : active_sub) {
+      if (it.visited) {
+        it.old_     = 0;
+        it.visited  = false;
+        it.picked   = false;
+      }
+      else
+        ++it.old_;
+    }
+  }
+  
+  for (auto & it : active_sub) 
+    it.save2file(ss);
+
+  //saving into file
+  ofstream arc(out_file);
+  cout << "Saving Graph in " << out_file << endl;
+  arc << ss.str();
+  arc.close();
 }

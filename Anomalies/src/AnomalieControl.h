@@ -74,6 +74,14 @@ class AnomalieControl
                           list<bool>  *       /*anomalies*/);
 
   //load graph from file
+
+  void  graphBuild      ( string      &       /*seq_file*/,
+                          string      &       /*video_file*/,
+                          string      &       /*out_file*/,
+                          float               /*rze*/,
+                          double              /*distance_obj_thr*/,
+                          double              /*distance_sub_thr*/,
+                          int                 /*time_life*/);
   
   
 public:
