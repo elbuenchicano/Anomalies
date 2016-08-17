@@ -21,7 +21,7 @@ void loadDefinitions(std::string file,  std::map<std::string, int> &info,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 void loadDescribedGraphs( string file , 
-                          list<BaseDefinitions_tr::graphType>& graphsList,
+                          list<Observed> & graphsList,
                           set<int> * observedObjs = nullptr)
 {
   ifstream    arc(file);
@@ -34,12 +34,12 @@ void loadDescribedGraphs( string file ,
       auto vline = cutil_string_split(line);
       switch (vline[0][0]) {
       case 'G': {
-        graphsList.push_front(BaseDefinitions_tr::graphType());
+        graphsList.push_front(Observed(stoi(vline[1])));
         break;
       }
       case 'N': {
         auto head = graphsList.begin();
-        head->addSubjectNode(ActorLabel(stoi(vline[1]), stoi(vline[2])));
+        head->graph_.addSubjectNode(ActorLabel(stoi(vline[1]), stoi(vline[2])));
         break;
       }
       case 'E': {
@@ -48,7 +48,7 @@ void loadDescribedGraphs( string file ,
       }
       case 'O': {
         auto head = graphsList.begin();
-        head->addObjectRelation(ActorLabel(stoi(vline[1]), stoi(vline[2])), lastEdge);
+        head->graph_.addObjectRelation(ActorLabel(stoi(vline[1]), stoi(vline[2])), lastEdge);
 
         //adding the object to observed objects into the set
         if(observedObjs)
@@ -231,6 +231,146 @@ void distributionPermutation(set<int> &objs, map<string, int> & out) {
   
   /**/
 }
+
+//////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////
+//THIS PART MAY HAVE THREADS
+void executeFunctionVec(  vector<pf>  &vec, 
+                          string      &cmd,
+                          string      &settings_file,
+                          short       frm_step, 
+                          map<string, int> *objs, 
+                          map<int, string> *objs_i){
+  auto objectives = cutil_string_split(cmd);
+  for (auto & ob : objectives) {
+    if (ob != " ") {
+      vec[stoi(ob)](settings_file, frm_step, objs, objs_i);
+    }
+  }
+}
+//////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////
+void dictionaryBuild(graphLstT &lst, string &out_file,
+  set<string> & voc) {
+
+  voc.clear();
+
+  for (auto &graph : lst) {
+    for (auto &node : graph.graph_.listNodes_) {
+      set<int> objects;
+
+      for (auto &par : node.objectList_) {
+        objects.insert(par.first.data_.id_);
+      }
+      auto  str = set2str(objects);
+      if (str != "")
+        voc.insert(str);
+    }
+  }
+  ofstream arc(out_file);
+  cout << "Written in " << out_file << endl;
+  cutil_cont2os(arc, voc, "\n");
+  arc.close();
+}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void listObservedObjs(graphLstT &lst, string &out_file,
+  set<int> &voc) {
+  voc.clear();
+
+  for (auto &graph : lst)
+    for (auto &node : graph.graph_.listNodes_)
+      for (auto &par : node.objectList_)
+        voc.insert(par.first.data_.id_);
+  ofstream arc(out_file);
+  cout << "Written in " << out_file << endl;
+  cutil_cont2os(arc, voc, "\n");
+  arc.close();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void distributions(graphLstT &lst, string &out_file,
+  set<string> & voc) {
+  map <string, int> dist;
+
+  //initalizing with zero values
+  for (auto & it : voc)
+    dist[it] = 0;
+
+  Mat_<int> histograms;
+  //creating for each graph
+  for (auto &graph : lst) {
+    auto h = graphHistrogram(graph.graph_, dist, voc);
+    histograms.push_back(h);
+  }
+
+  FileStorage fs(out_file, FileStorage::WRITE);
+  cout << "Written in " << out_file << endl;
+  fs << "Histograms" << histograms;
+
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void distributionBuild(graphLstT   &lst, string &out_file,
+  set<int>    &obsO,
+  map<string, int> & voc) {
+
+  voc.clear();
+  distributionPermutation(obsO, voc);
+
+  Mat_<int> histograms;
+  for (auto &graph : lst) {
+    auto h = distribution(graph.graph_, voc);
+    histograms.push_back(h);
+  }
+
+  //saving to file 
+
+  FileStorage fs(out_file, FileStorage::WRITE);
+  cout << "Written in " << out_file << endl;
+  fs << "Histograms" << histograms;
+}
+
+Mat_<int> distribution(graphType    &graph,
+  map<string, int>  &dist) {
+
+  Mat_<int> histo(1, static_cast<int>(dist.size()));
+  histo = histo * 0;
+  vector<string> tmp;
+
+  for (auto &node : graph.listNodes_) {
+    set<int> objects;
+
+    for (auto &par : node.objectList_) {
+      objects.insert(par.first.data_.id_);
+    }
+    auto  str = set2str(objects);
+    tmp = cutil_string_split(str);
+
+    if (tmp.size() > 1) {
+      for (auto &it : tmp)
+        ++histo(0, dist[it]);
+    }
+    ++histo(0, dist[str]);
+  }
+
+  return histo;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool trainLevel1( string & set_file, short frm_step, 
+                  map<string, int> *objs, map<int, string> *objs_i) {
+
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 

@@ -106,10 +106,27 @@ void Sequence::loadSequence()
 void Sequence::getImage(int frame, Mat &img) {
   if (video_) {
     video_->getImage(img, frame);
+    if (rze_ > 0)resize(img, img, Size(), rze_, rze_);
     stringstream lblframe;
     lblframe << "Frame " << frame;
     putText(img, lblframe.str(), Point(0, 20), CV_FONT_HERSHEY_PLAIN, 2.0, Scalar(0, 0, 255));
   }
+}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void Sequence::drawSub(int frame, int id, Mat &img, Scalar color, string msg) {
+  SubjectItem &subj = frames_[frame].subjects_[id];
+  rectangle(img, subj.sw_, subj.ne_, color);
+  circle(img, subj.h1_, 5, Scalar(255, 0, 255), -1, 8);
+  circle(img, subj.h2_, 5, Scalar(255, 0, 255), -1, 8);
+  putText(img, msg, subj.sw_, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(255, 0, 0));
+}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void Sequence::drawObj(int frame, int id, Mat &img, Scalar color, string msg) {
+  ObjectItem &obj = frames_[frame].objects_[id];
+  rectangle(img, obj.sw_, obj.ne_, color);
+  putText(img, msg, obj.sw_, CV_FONT_HERSHEY_PLAIN, 1.0, color);
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -42,31 +42,67 @@ public:
 
   map <int, FrameSeq> frames_;
 
-  Sequence( short              /*step*/, 
-            string &           /*desc_file*/, 
-            string &           /*video_file*/,
-            float              /*rze*/,
-            map<string, int> & /*objs*/,
-            map<int, string> & /*objs_i*/);
+  Sequence( short                   /*step*/, 
+            string &                /*desc_file*/, 
+            string &                /*video_file*/,
+            float                   /*rze*/,
+            map<string, int> &      /*objs*/,
+            map<int, string> &      /*objs_i*/);
 
-  void  drawAllSubs ( int          /*frame*/,
+  //frame number
+  //image
+  void  drawAllSubs ( int           /*frame*/,
                       Mat         & /*img*/);
-  
+
+  //especific subject item
+  //image
+  //color 
+  //messag
   void  drawSub     ( SubjectItem & /*subj*/,
                       Mat         & /*img*/,
                       Scalar        /*color*/,
                       string        /*msg*/);
 
-  void  drawAllObjs ( int          /*frame*/,
+  //frame number
+  //image
+  void  drawAllObjs ( int           /*frame*/,
                       Mat         & /*img*/);
-  
-  void  drawObj     ( ObjectItem & /*subj*/,
+
+  //especific object item
+  //image
+  //color 
+  //message
+  void  drawObj     ( ObjectItem  & /*subj*/,
                       Mat         & /*img*/,
                       Scalar        /*color*/,
                       string        /*msg*/);
 
+  //frame number
+  //image
   void  getImage    ( int           /*frame*/,
                       Mat         & /*img*/);
+
+  //frame number
+  //position in vector
+  //image
+  //color 
+  //message
+  void  drawSub     ( int           /*frame*/,
+                      int           /*id*/,
+                      Mat         & /*img*/,
+                      Scalar        /*color*/,
+                      string        /*msg*/);
+
+  //frame number
+  //position in vector
+  //image
+  //color 
+  //message
+  void  drawObj     ( int           /*frame*/,
+                      int           /*id*/,
+                      Mat         & /*img*/,
+                      Scalar        /*color*/,
+                      string        /*msg*/);
 
 };
 

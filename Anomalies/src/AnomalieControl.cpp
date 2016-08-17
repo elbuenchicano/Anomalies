@@ -1,9 +1,9 @@
 #include "AnomalieControl.h"
 
 ///default constructor
-AnomalieControl::AnomalieControl(){}
+AnomalyControl::AnomalyControl(){}
 ///constructor string
-AnomalieControl::AnomalieControl(string file):
+AnomalyControl::AnomalyControl(string file):
 main_prop_file_(file){
   
   string main_object_file;
@@ -15,16 +15,18 @@ main_prop_file_(file){
   fs_main_["main_object_file"]  >> main_object_file;
   fs_main_["main_frame_step"]   >> frame_step_;
   
-  //loading functions
+  //loading objects
   loadDefinitions(main_object_file, objects_, objects_rev_);
+
+  //loading functions
 
 }
 ///default destructor
-AnomalieControl::~AnomalieControl(){}
+AnomalyControl::~AnomalyControl(){}
 ///
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-void AnomalieControl::run() {
+void AnomalyControl::run() {
   short op;
   fs_main_["main_operation"] >> op;
   switch (op)
@@ -52,7 +54,7 @@ void AnomalieControl::run() {
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-void AnomalieControl::graphBuilding() {
+void AnomalyControl::graphBuilding() {
  
   //variables..................................................................
   double  distance_obj_thr,
@@ -93,16 +95,16 @@ void AnomalieControl::graphBuilding() {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::show() {
+void AnomalyControl::show() {
   string  seq_file,
           video_file,
           graph_file;
 
   float   rze;
 
-  list<FrameItem>   frame_list;
+  list<FrameItem> frame_list;
 
-  graphLstT         graphs;
+  graphLstT  graphs;
   
   //............................................................................
   fs_main_["show_seq_file"]   >> seq_file;
@@ -117,8 +119,24 @@ void AnomalieControl::show() {
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+void AnomalyControl::train() {
+  string      command,
+              setup_file;
+  
+  vector<pf>  test;
 
-void AnomalieControl::training() {
+  //............................................................................
+  fs_main_["train_command"]     >> command;
+  fs_main_["train_setup_file"]  >> setup_file;
+
+  //............................................................................
+  executeFunctionVec( test, command, setup_file, frame_step_, 
+                      &objects_, &objects_rev_);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void AnomalyControl::training() {
   string  token,
           directory,
           out_voc_file,
@@ -175,13 +193,35 @@ void AnomalieControl::training() {
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+void AnomalyControl::test() {
+  
+  string      command,
+              setup_file;
+  
+  vector<pf>  test;
 
-void AnomalieControl::testing1() {
+  //............................................................................
+  fs_main_["test_command"]     >> command;
+  fs_main_["test_setup_file"]  >> setup_file;
+
+  //............................................................................
+  executeFunctionVec( test, command, setup_file, frame_step_, 
+                      &objects_, &objects_rev_);
+  
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void AnomalyControl::testing1() {
   string  voc_file,
           graph_file,
           out_file;
+  
   int     pos;
-  graphLstT graph_test;
+
+  graphLstT  graph_test;
+
   //............................................................................
   fs_main_["testing1_voc_file"]    >> voc_file;
   fs_main_["testing1_graph_file"]  >> graph_file;
@@ -195,14 +235,14 @@ void AnomalieControl::testing1() {
   ofstream arc(out_file);
   auto voc = cutil_load2strv(voc_file);
   for (auto &graph : graph_test) {
-    for (auto &node : graph.listNodes_) {
+    for (auto &node : graph.graph_.listNodes_) {
       set<int> objects;
       for (auto &par : node.objectList_)
         objects.insert(par.first.data_.id_);
       auto  str = set2str(objects);
 
       if (algoUtil_bin_search<string>(voc, str, pos)) {
-        arc << "Warning: Frame" << graph.listNodes_.begin()->data_.id_ << "/n";
+        arc << "Warning: Frame" << graph.graph_.listNodes_.begin()->data_.id_ << "/n";
         arc << "Unknown word: " << str << "/n";
       }
     }
@@ -216,13 +256,13 @@ void AnomalieControl::testing1() {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::testing2() {
+void AnomalyControl::testing2() {
   string  histo_file,
           graph_file,
           obs_file,
           out_file;
 
-  graphLstT graph_test;
+  graphLstT  graph_test;
   
   Mat_<int> histos;
 
@@ -264,14 +304,14 @@ void AnomalieControl::testing2() {
   list<bool>    anomalyList;
 
   for (auto &graph : graph_test) {
-    auto h = distribution(graph, voc);
+    auto h = distribution(graph.graph_, voc);
     for (int i = 0; i < histos.rows; ++i) {
       line = histos.row(i);
       dist = norm(h, line);
       if (dist < min) min = dist;
     }
     if (dist > thr) {
-      wrg << "Warning Graph!" << graph.listNodes_.begin()->data_.id_ << endl;
+      wrg << "Warning Graph!" << graph.graph_.listNodes_.begin()->data_.id_ << endl;
       anomalyList.push_back(true);
     }
     else
@@ -311,262 +351,83 @@ void AnomalieControl::testing2() {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
-Mat AnomalieControl::show(int frame) {
-  
-  string  video_file,
-          rze;
-  fs_main_["show_video_file"] >> video_file;
-  fs_main_["show_resize"]     >> rze;
-  
-  mfVideoSequence seq(video_file);
-  
-  Mat img;
-  seq.getImage(img, frame);
-  return img;
-}
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::dictionaryBuild(graphLstT &lst, string &out_file, 
-                                      set<string> & voc) {
-  
-  voc.clear();
-  
-  for (auto &graph : lst){
-    for (auto &node : graph.listNodes_) {
-      set<int> objects; 
-       
-      for (auto &par : node.objectList_) {
-        objects.insert(par.first.data_.id_);
-      }
-      auto  str = set2str(objects);
-      if(str != "")
-        voc.insert(str);
-    }
-  }
-  ofstream arc(out_file);
-  cout << "Written in " << out_file << endl;
-  cutil_cont2os(arc, voc, "\n");
-  arc.close();
-}
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
-void AnomalieControl::listObservedObjs( graphLstT &lst, string &out_file,
-                                        set<int> &voc){
-  voc.clear();
-
-  for (auto &graph : lst)
-    for (auto &node : graph.listNodes_) 
-      for (auto &par : node.objectList_) 
-        voc.insert(par.first.data_.id_);
-  ofstream arc(out_file);
-  cout << "Written in " << out_file << endl;
-  cutil_cont2os(arc, voc, "\n");
-  arc.close();
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-void AnomalieControl::distributions(  graphLstT &lst, string &out_file,
-                                      set<string> & voc) {
-  map <string, int> dist;
-
-  //initalizing with zero values
-  for (auto & it : voc)
-    dist[it] = 0;
-
-  Mat_<int> histograms;
-  //creating for each graph
-  for (auto &graph : lst) {
-    auto h = graphHistrogram(graph, dist, voc);
-    histograms.push_back(h);
-  }
-
-  FileStorage fs(out_file, FileStorage::WRITE);
-  cout  << "Written in "  << out_file << endl;
-  fs    << "Histograms"   << histograms;
-
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-void AnomalieControl::distributionBuild(  graphLstT   &lst, string &out_file,
-                                          set<int>    &obsO,
-                                          map<string,int> & voc) {
-
-  voc.clear();
-  distributionPermutation(obsO, voc);
-
-  Mat_<int> histograms;
-  for (auto &graph : lst) {
-    auto h = distribution(graph, voc);
-    histograms.push_back(h);
-  }
-
-  //saving to file 
-
-  FileStorage fs(out_file, FileStorage::WRITE);
-  cout  << "Written in " << out_file << endl;
-  fs    << "Histograms" << histograms;
-}
-
-Mat_<int> AnomalieControl::distribution ( graphType    &graph,
-                                          map<string, int>  &dist){
-  
-  Mat_<int> histo(1, static_cast<int>(dist.size()));
-  histo = histo * 0;
-  vector<string> tmp;
-
-  for (auto &node : graph.listNodes_) {
-    set<int> objects;
-
-    for (auto &par : node.objectList_) {
-      objects.insert(par.first.data_.id_);
-    }
-    auto  str = set2str(objects);
-    tmp = cutil_string_split(str);
-
-    if (tmp.size() > 1) {
-      for (auto &it : tmp)
-        ++histo(0, dist[it]);
-    }
-    ++histo(0, dist[str]);  
-  }
-
-  return histo;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-void AnomalieControl::show( graphLstT   &graphs,    string  &video_file, 
+void AnomalyControl::show( graphLstT   &graphs,    string  &video_file, 
                             string      &seq_file,  float   rze,
                             list<bool>  *anomalies) {
-  Mat   img;
+  Mat       img;
 
-  int   gcont;
+  Sequence  seq(frame_step_, seq_file, video_file, rze, objects_, objects_rev_);
 
-  list<FrameItem>   frame_list;
-  
-  list<bool>::iterator ait;
-
-  //............................................................................
-  mfVideoSequence seq(video_file);
-  loadFrameList(seq_file, frame_list, frame_step_, objects_);
   
   //............................................................................
-  
-  //begins in the listframe and the same time extracts the image by framenumber
-  for (auto frm = frame_list.begin(); frm != frame_list.end() &&
-    seq.getImage(img, frm->frameNumber); frm++) {
+  //for each frame 
+  for (auto & frm : seq.frames_) {
+    //getting image by request
+    seq.getImage(frm.first, img);
+    for (auto ite = graphs.begin(); ite != graphs.end(); ++ite) {
 
-    //drawing frame number
-    stringstream lblframe;
-    lblframe << "Frame " << frm->frameNumber;
-    putText(img, lblframe.str(), Point(0, 20), CV_FONT_HERSHEY_PLAIN, 2.0, Scalar(0, 0, 255));
-
-    //..........................................................................
-    //for each graph
-    gcont = 0;
-
-    //if vector anomalies is on
-    if (anomalies)
-      ait = anomalies->begin();
-
-    for (auto graphs_ite = graphs.begin(); graphs_ite != graphs.end(); graphs_ite++) {
-
-      //resizes the image given the case  
-      if (rze > 0)resize(img, img, Size(), rze, rze);
-
-      if (graphs_ite->listNodes_.begin() != graphs_ite->listNodes_.end() &&
-        graphs_ite->listNodes_.begin()->data_.id_ == frm->frameNumber) {
-
-        auto head = graphs_ite->listNodes_.begin();
-        Point p1(frm->sub_obj[0][head->data_.list_idx_][1],
-          frm->sub_obj[0][head->data_.list_idx_][2]);
-
-        Point p2(frm->sub_obj[0][head->data_.list_idx_][3],
-          frm->sub_obj[0][head->data_.list_idx_][4]);
-
-        Point hand1(frm->sub_obj[0][head->data_.list_idx_][6],
-          frm->sub_obj[0][head->data_.list_idx_][7]);
-
-        Point hand2(frm->sub_obj[0][head->data_.list_idx_][8],
-          frm->sub_obj[0][head->data_.list_idx_][9]);
-
-        //drawing subject
-        rectangle(img, p1, p2, Scalar(255, 0, 0));
-
-        //drawing hands
-
-        circle(img, hand1, 5, Scalar(255, 0, 255), -1, 8);
-        circle(img, hand2, 5, Scalar(255, 0, 255), -1, 8);
-
-        //put label
-        stringstream sublbl;
-        sublbl << "Sub" << gcont;
-        putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(255, 0, 0));
-
+      if (  ite->graph_.listNodes_.begin() != ite->graph_.listNodes_.end() &&
+            ite->graph_.listNodes_.begin()->data_.id_ ==  frm.first){ 
+        
+        auto head = ite->graph_.listNodes_.begin();
+        stringstream subname;
+        subname << "Subject " << ite->id_;
+        seq.drawSub( frm.first, head->data_. list_idx_,img, 
+                     Scalar(0,0,255), subname.str());
+        
+        //for each object in the specific frame
         for (auto &ob : head->objectList_) {
-          Point p1(frm->sub_obj[1][ob.first.data_.list_idx_][1],
-            frm->sub_obj[1][ob.first.data_.list_idx_][2]);
-
-          Point p2(frm->sub_obj[1][ob.first.data_.list_idx_][3],
-            frm->sub_obj[1][ob.first.data_.list_idx_][4]);
-
-          //drawing rectangle
-          stringstream sublbl;
-          sublbl << objects_rev_[ob.first.data_.id_] << " Sub" << gcont;
-          rectangle(img, p1, p2, Scalar(0, 150, 255));
-          putText(img, sublbl.str(), p1, CV_FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 150, 255));
+          seq.drawObj( frm.first, ob.first.data_.list_idx_, img, 
+                       Scalar(0, 255, 0), subname.str());
         }
-
-        graphs_ite->listNodes_.pop_front();
+        //updateing graph
+        ite->graph_.listNodes_.pop_front();
       }
-      if(anomalies)++ait;
+      else {
+        if (  ite->graph_.listNodes_.begin() == ite->graph_.listNodes_.end() &&
+              graphs.size() > 1 ) {
+          auto it = ite;
+          --ite;
+          graphs.erase(it);
+        }
+      }
     }
-    cv::imshow("Frame", img);
-    //if (waitKey(30) >= 0) break;
-    cv::waitKey();
-    ++gcont;
+    imshow("Frame", img);
+    if (waitKey(30) >= 0) break;
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void AnomalieControl::graphBuild( string  &seq_file, 
+void AnomalyControl::graphBuild( string  &seq_file, 
                                   string  &video_file,
                                   string  &out_file,
                                   float   rze,
                                   double  distance_obj_thr, 
                                   double  distance_sub_thr,
                                   int     time_life) {
-  list< Actor >     active_sub;
+  list< Actor >   active_sub;
 
-  Sequence          seq(  frame_step_, seq_file, video_file, rze, 
-                          objects_, objects_rev_);
-
-  //............................................................................
-
-  //Tracking and looking for subjects
-  //for each frame in parsed video
   stringstream    ss;
-  
+
   int graph_count = 0;
 
   Mat img;
+
+  Sequence        seq(  frame_step_, seq_file, video_file, rze, 
+                        objects_, objects_rev_);
+
+  //............................................................................
+  //Tracking and looking for subjects
+  //for each frame in parsed video
   for (auto & frame : seq.frames_) {
     cout << frame.first << endl;
-    
     //seq.getImage(frame.first, img);
 
     //for each candidate subject update the list 

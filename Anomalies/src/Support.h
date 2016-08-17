@@ -33,7 +33,7 @@ double  distance2object(  TrkPoint /*point*/,
 
 //load described graph
 void loadDescribedGraphs( string, 
-                          list<BaseDefinitions_tr::graphType> &, 
+                          list<Observed> &, 
                           set<int> *);
 
 //resuming graph, clean consecutive atomic nodes
@@ -51,7 +51,52 @@ Mat_<int> graphHistrogram   ( BaseDefinitions_tr::graphType &,
 //creating the map for istograms
 void distributionPermutation( set<int> &, map<string, int> &);
 
+///_____________________________________________________________________________
+////GRAPH SHOW
 
+
+///_____________________________________________________________________________
+///TRAINING AND TESTING
+
+//this function performs the extraction for first level of anomaly 
+bool trainLevel1(string &, short, map<string, int> *, map<int, string> *);
+
+
+//function vector
+//command separated by spaces
+//setting file
+//frame step
+//objects map  <name id>
+//inverted objects map <id name>
+void executeFunctionVec(  vector<pf>  & /*vec*/, 
+                          string      & /*cmd*/,
+                          string      & /*settings_file*/,
+                          short         /*frm_step*/, 
+                          map<string, int> * /*objs*/, 
+                          map<int, string> * /*objs_i*/);
+
+void dictionaryBuild   (  graphLstT   &       /*lst*/,
+                          string      &       /*out_file*/,
+                          set<string> &       /*voc*/);
+
+  //creates distributions histograms over the vocabulary use
+void distributions     (  graphLstT   &       /*lst*/,
+                          string      &       /*out_file*/,
+                          set<string> &       /*voc*/);
+
+void distributionBuild  ( graphLstT   &       /*lst*/,
+                          string      &       /*out_file*/,
+                          set<int>    &       /*obsO*/,                          
+                          map<string, int> &  /*voc*/);
+
+//creates distribution histograms over only with permutations
+Mat_<int> distribution  ( graphType   &       /*graph*/,
+                          map<string, int> &  /*dist*/);
+
+//numerates the observed objects
+void listObservedObjs   ( graphLstT   &       /*lst*/,
+                          string      &       /*out_file*/,
+                          set<int>    &       /*voc*/);
 
 
 #endif// _SUPPORT_

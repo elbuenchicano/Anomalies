@@ -3,14 +3,14 @@
 
 #include "Support.h"
 
+
 //..............................................................................
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ///Main control class for anomalie detection
-class AnomalieControl
+class AnomalyControl
 {
-  typedef BaseDefinitions_tr::graphType graphType;
-  typedef list<graphType>               graphLstT;
+  
 
   //variables...................................................................
   string            main_prop_file_;
@@ -27,7 +27,11 @@ class AnomalieControl
 
   void graphBuilding(); //recovering information from scenes given by cnns
   
+  void train        ();
+
   void training     ();
+
+  void test         ();
 
   void testing1     ();
 
@@ -41,32 +45,8 @@ class AnomalieControl
   
   //create dictionary 
   //receives graph list 
-  void dictionaryBuild  ( graphLstT   &       /*lst*/,
-                          string      &       /*out_file*/,
-                          set<string> &       /*voc*/);
-
-  //creates distributions histograms over the vocabulary use
-  void distributions    ( graphLstT   &       /*lst*/,
-                          string      &       /*out_file*/,
-                          set<string> &       /*voc*/);
-
-  void distributionBuild( graphLstT   &       /*lst*/,
-                          string      &       /*out_file*/,
-                          set<int>    &       /*obsO*/,                          
-                          map<string, int> &  /*voc*/);
-
-  //creates distribution histograms over only with permutations
-  Mat_<int> distribution( graphType   &       /*graph*/,
-                          map<string, int> &  /*dist*/);
-
-  //numerates the observed objects
-  void listObservedObjs ( graphLstT   &       /*lst*/,
-                          string      &       /*out_file*/,
-                          set<int>    &       /*voc*/);
-
-  //return image by request
-  Mat   show            ( int );
-
+  
+  //show the sequence
   void  show            ( graphLstT   &       /*lst*/,
                           string      &       /*video_file*/,
                           string      &       /*seq_file*/,
@@ -74,7 +54,6 @@ class AnomalieControl
                           list<bool>  *       /*anomalies*/);
 
   //load graph from file
-
   void  graphBuild      ( string      &       /*seq_file*/,
                           string      &       /*video_file*/,
                           string      &       /*out_file*/,
@@ -86,9 +65,9 @@ class AnomalieControl
   
 public:
   //constructors destructor.....................................................
-  AnomalieControl();
-  AnomalieControl(string file);
-  ~AnomalieControl();
+  AnomalyControl();
+  AnomalyControl(string file);
+  ~AnomalyControl();
 
   void run();
   

@@ -16,5 +16,6 @@ ostream & operator<<(ostream & os, ActorLabel & ac){
 ActorLabel & ActorLabel::operator=(ActorLabel & ac){
   id_       = ac.id_;
   list_idx_ = ac.list_idx_;
+  anomaly_  = ac.anomaly_;
   return *this;
 }
