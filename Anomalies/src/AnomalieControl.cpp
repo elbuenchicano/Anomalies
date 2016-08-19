@@ -35,13 +35,10 @@ void AnomalyControl::run() {
     graphBuilding();
     break;
   case 2:
-    training();
+    train();
     break;
   case 3:
-    testing1();
-    break;
-  case 4:
-    testing2();
+    test();
     break;
   case 10:
     show();
@@ -123,72 +120,18 @@ void AnomalyControl::train() {
   string      command,
               setup_file;
   
-  vector<pf>  test;
+  vector<pf>  functions{
+                    trainLevel1, //0 - first training
+                    trainLevel2  //1 - second level
+                  };
 
   //............................................................................
   fs_main_["train_command"]     >> command;
   fs_main_["train_setup_file"]  >> setup_file;
 
   //............................................................................
-  executeFunctionVec( test, command, setup_file, frame_step_, 
+  executeFunctionVec( functions, command, setup_file, frame_step_, 
                       &objects_, &objects_rev_);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-void AnomalyControl::training() {
-  string  token,
-          directory,
-          out_voc_file,
-          out_dist_file,
-          out_obs_file;
-
-  cutil_file_cont graph_files;
-
-  graphLstT       graph_list;
-
-  set<int>        observedObjs;
-
-  //............................................................................
-  fs_main_["training_token"]        >> token;
-  fs_main_["training_directory"]    >> directory;
-  fs_main_["training_out_voc_file"] >> out_voc_file;
-  fs_main_["training_out_obs_file"] >> out_obs_file;
-  fs_main_["training_out_dist_file"]>> out_dist_file;
-
-
-
-  //............................................................................
-  //First level: atomic anomalies 
-  //dictionary build 
-  cout << "Training...\n";
-  list_files(graph_files, directory.c_str(), token.c_str());
-  for (auto & file : graph_files) {
-    cout << file << endl;
-    loadDescribedGraphs(file, graph_list, &observedObjs);
-  }
-
-  //............................................................................
-  //saving vocabulary in file
-  //set<string> voc;
-  //dictionaryBuild(graph_list, out_voc_file, voc);
-  
-
-  //............................................................................
-  //recording the distributions
-  //distributions(graph_list, out_dist_file, voc);
-
-  //............................................................................
-  //saving the observed objects
-  ofstream arc(out_obs_file);
-  cout << "Observed ojects saved in: \n" << out_obs_file << endl;
-  cutil_cont2os(arc, observedObjs, "\n");
-  arc.close();
-  
-  map<string, int> voc;
-  distributionBuild(graph_list, out_dist_file, observedObjs, voc);
-  
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -198,7 +141,11 @@ void AnomalyControl::test() {
   string      command,
               setup_file;
   
-  vector<pf>  test;
+  vector<pf>  test{
+                    testLevel1,//0 first
+                    testLevel2,//1 second
+                    testLevel3 //2 third
+  };
 
   //............................................................................
   fs_main_["test_command"]     >> command;

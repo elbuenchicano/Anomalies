@@ -241,17 +241,24 @@ void executeFunctionVec(  vector<pf>  &vec,
                           short       frm_step, 
                           map<string, int> *objs, 
                           map<int, string> *objs_i){
+  
+  list<Observed>  graphs;
+  set<int>        obsObjs;
+
   auto objectives = cutil_string_split(cmd);
+  loadGraphs(settings_file, graphs, obsObjs);
+  
   for (auto & ob : objectives) {
-    if (ob != " ") {
-      vec[stoi(ob)](settings_file, frm_step, objs, objs_i);
+    if (ob != "") {
+      vec[stoi(ob)](  settings_file, frm_step, objs, objs_i,
+                      graphs, obsObjs);
     }
   }
 }
 //////////////////////////////////////////////////////////////////////////////// 
 ////////////////////////////////////////////////////////////////////////////////
-void dictionaryBuild(graphLstT &lst, string &out_file,
-  set<string> & voc) {
+void dictionaryBuild( graphLstT &lst, string &out_file,
+                      set<string> & voc) {
 
   voc.clear();
 
@@ -366,10 +373,232 @@ Mat_<int> distribution(graphType    &graph,
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool trainLevel1( string & set_file, short frm_step, 
-                  map<string, int> *objs, map<int, string> *objs_i) {
+bool loadGraphs(  string          &set_file,
+                  list<Observed>  &graph_list,
+                  set<int>        &observedObjs) {
+  
+  int flag;
+  FileStorage fs(set_file, FileStorage::READ);
+  
+  //............................................................................
+  fs["load_graph_flag"] >> flag;
+  if (flag) {
+    string  directory,
+            token;
 
+    cutil_file_cont graph_files;
+
+    fs["load_graph_token"]      >> token;
+    fs["load_graph_directory"]  >> directory;
+
+    cout << "Loading graphs...\n";
+    list_files(graph_files, directory.c_str(), token.c_str());
+    for (auto & file : graph_files) {
+      cout << file << endl;
+      loadDescribedGraphs(file, graph_list, &observedObjs);
+    }
+  }
+  else {
+    string  file;
+    fs["load_graph_file"] >> file;
+    if (file != "") {
+      cout << "Loading graph: ";
+      cout << file << endl;
+      loadDescribedGraphs(file, graph_list, &observedObjs);
+    }
+    else{
+      cout << "Not found file" << endl;
+      return false;
+    }
+  }
+  return true;
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool trainLevel1( string & set_file, short frm_step,
+                  map<string, int>  *objs, 
+                  map<int, string>  *objs_i,
+                  list<Observed>    &graphs, 
+                  set<int>          &obs) {
+
+  cout << "\nTrain level 1 executing...\n";
+  string  out_voc_file,
+          out_dist_file;
+  FileStorage fs(set_file, FileStorage::READ);
+  fs["train1_out_voc_file"]   >> out_voc_file;
+  fs["train1_out_dist_file"]  >> out_dist_file;
+
+  //............................................................................
+  //saving vocabulary in file
+  set<string> voc;
+  dictionaryBuild(graphs, out_voc_file, voc);
+
+  //............................................................................
+  //recording the distributions
+  distributions(graphs, out_dist_file, voc);
+  return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool trainLevel2( string & set_file, short frm_step,
+                  map<string, int>  *objs,
+                  map<int, string>  *objs_i,
+                  list<Observed>    &graphs,
+                  set<int>          &obs) {
+  cout << "\nTrain level 2 executing...\n";
+
+  string  out_voc_file,
+          out_obs_file,
+          out_dist_file;
+  FileStorage fs(set_file, FileStorage::READ);
+  fs["train2_out_voc_file"]   >> out_voc_file;
+  fs["train2_out_obs_file"]   >> out_obs_file;
+  fs["train2_out_dist_file"]  >> out_dist_file;
+
+  //............................................................................
+  //saving the observed objects
+  ofstream arc(out_obs_file);
+  cout << "Observed ojects saved in: " << out_obs_file << endl;
+  cutil_cont2os(arc, obs, "\n");
+  arc.close();
+
+  map<string, int> voc;
+  distributionBuild(graphs, out_dist_file, obs, voc);
+  return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool testLevel1(  string & set_file, short frm_step,
+                  map<string, int>  *objs,
+                  map<int, string>  *objs_i,
+                  list<Observed>    &graphs,
+                  set<int>          &obs) {
+  cout << "\nTest level 1 executing...\n";
+
+  string  voc_file,
+          out_file;
+
+  int     pos;
+
+  FileStorage fs(set_file, FileStorage::READ);
+  //............................................................................
+  fs["testing1_voc_file"]   >> voc_file;
+  fs["testing1_out_file"]   >> out_file;
+
+  //............................................................................
+  //first level anomalie recognition 
+  stringstream ss;
+  auto voc = cutil_load2strv(voc_file);
+  for (auto &graph : graphs) {
+    for (auto &node : graph.graph_.listNodes_) {
+      set<int> objects;
+      for (auto &par : node.objectList_)
+        objects.insert(par.first.data_.id_);
+      auto  str = set2str(objects);
+
+      if (!algoUtil_bin_search<string>(voc, str, pos)) {
+        ss << "Warning: G-" << graph.id_ << "\t";
+        ss << "Unknown word: " << str << ", In frame:" << node.data_.id_ <<"\n";
+      }
+    }
+  }
+  cout << ss.str();
+  ofstream arc(out_file);
+  arc << ss.str();
+  arc.close();
+  //TO DO: present in images 
+
+
+  return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool testLevel2(  string & set_file, short frm_step,
+                  map<string, int>  *objs,
+                  map<int, string>  *objs_i,
+                  list<Observed>    &graphs,
+                  set<int>          &obs) {
+  cout << "\nTest level 2 executing...\n";
+
+  string  histo_file,
+          graph_file,
+          obs_file,
+          out_file;
+
+  FileStorage fs(set_file, FileStorage::READ);
+    
+  graphLstT  graph_test;
+
+  Mat_<int> histos;
+
+  double    thr;
+
+  bool      visual;
+  //............................................................................
+
+  fs["testing2_histo_file"] >> histo_file;
+  fs["testing2_graph_file"] >> graph_file;
+  fs["testing2_out_file"]   >> out_file;
+  fs["testing2_obs_file"]   >> obs_file;
+  fs["testing2_thr"]        >> thr;
+  fs["testing2_visual"]     >> visual;
+
+
+  //............................................................................
+  loadDescribedGraphs(graph_file, graph_test, nullptr);
+  fs["Histograms"] >> histos;
+
+  //............................................................................
+  //second level anomalie recognition
+  auto vstr = cutil_load2strv(obs_file);
+  set<int> obsO;
+  for (auto &it : vstr)
+    obsO.insert(stoi(it));
+
+  map<string, int> voc;
+  distributionPermutation(obsO, voc);
+
+  Mat_<int>     line;
+  double        dist,
+    min = FLT_MAX;
+  stringstream  wrg;
+
+  list<bool>    anomalyList;
+
+  for (auto &graph : graph_test) {
+    auto h = distribution(graph.graph_, voc);
+    for (int i = 0; i < histos.rows; ++i) {
+      line = histos.row(i);
+      dist = norm(h, line);
+      if (dist < min) min = dist;
+    }
+    if (dist > thr) {
+      wrg << "Warning Graph!" << graph.graph_.listNodes_.begin()->data_.id_ << endl;
+      anomalyList.push_back(true);
+    }
+    else
+      anomalyList.push_back(false);
+  }
+
+  //............................................................................
+  //savin in output file
+  cout << wrg.str();
+
+  if (out_file != "") {
+    ofstream arc(out_file);
+    cout << "Warnings saved in: " << out_file << endl;
+    arc << wrg.str();
+    arc.close();
+  }
+  return true;
+}
+
 
 
 

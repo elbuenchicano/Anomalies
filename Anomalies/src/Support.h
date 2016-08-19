@@ -52,15 +52,29 @@ Mat_<int> graphHistrogram   ( BaseDefinitions_tr::graphType &,
 void distributionPermutation( set<int> &, map<string, int> &);
 
 ///_____________________________________________________________________________
-////GRAPH SHOW
-
+////Generic load list graphs from directoy
+bool loadGraphs(  string          & /*set_file*/, 
+                  list<Observed>  & /*graph_list*/,
+                  set<int>        & /*observedObjs*/);
 
 ///_____________________________________________________________________________
 ///TRAINING AND TESTING
 
 //this function performs the extraction for first level of anomaly 
-bool trainLevel1(string &, short, map<string, int> *, map<int, string> *);
+bool trainLevel1( string &, short, map<string, int> *, map<int, string> *,
+                  list<Observed>  &, set<int>&);
 
+//this function performs test for first level of anomaly 
+bool testLevel1(  string &, short, map<string, int> *, map<int, string> *,
+                  list<Observed>  &, set<int>&);
+
+//this function performs the extraction for first level of anomaly 
+bool trainLevel2( string &, short, map<string, int> *, map<int, string> *,
+                  list<Observed>  &, set<int>&);
+
+//this function performs test for second level of anomaly 
+bool testLevel2(  string &, short, map<string, int> *, map<int, string> *,
+                  list<Observed>  &, set<int>&);
 
 //function vector
 //command separated by spaces
@@ -97,6 +111,13 @@ Mat_<int> distribution  ( graphType   &       /*graph*/,
 void listObservedObjs   ( graphLstT   &       /*lst*/,
                           string      &       /*out_file*/,
                           set<int>    &       /*voc*/);
+
+
+///_____________________________________________________________________________
+///VALIDATION
+
+void loadGt             ( string      &       /*file*/);
+
 
 
 #endif// _SUPPORT_

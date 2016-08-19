@@ -2,6 +2,8 @@
 #define ANOMALIE_CONTROL_H
 
 #include "Support.h"
+#include "Support2.h"
+
 
 
 //..............................................................................
@@ -28,8 +30,6 @@ class AnomalyControl
   void graphBuilding(); //recovering information from scenes given by cnns
   
   void train        ();
-
-  void training     ();
 
   void test         ();
 

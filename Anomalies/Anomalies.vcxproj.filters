@@ -78,6 +78,9 @@
     <ClInclude Include="src\Sequence.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
+    <ClInclude Include="src\Support2.h">
+      <Filter>Header Files\engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Anomalies.cpp">
@@ -111,6 +114,9 @@
       <Filter>Source Files\utils</Filter>
     </ClCompile>
     <ClCompile Include="src\Sequence.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Support2.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
   </ItemGroup>
