@@ -6,8 +6,8 @@
 int main(int arg, char ** argv)
 {
  
-  //string static_file = "e:/research/anomalies/Matheus/graphs/scripts/test1.yml";
-  string static_file = "e:/research/anomalies/Matheus/graphs/show.yml";
+  string static_file = "e:/research/anomalies/Matheus/graphs/scripts/test1.yml";
+  //string static_file = "e:/research/anomalies/Matheus/graphs/show.yml";
 
   //string static_file = "e:/research/anomalies/Matheus/seq6/main.yml";
 

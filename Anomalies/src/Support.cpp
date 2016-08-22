@@ -382,7 +382,7 @@ bool loadGraphs(  string          &set_file,
   
   //............................................................................
   fs["load_graph_flag"] >> flag;
-  if (flag) {
+  if (!flag) {
     string  directory,
             token;
 
@@ -481,14 +481,16 @@ bool testLevel1(  string & set_file, short frm_step,
   cout << "\nTest level 1 executing...\n";
 
   string  voc_file,
-          out_file;
+          out_file,
+          gt_file;
 
   int     pos;
 
   FileStorage fs(set_file, FileStorage::READ);
   //............................................................................
-  fs["testing1_voc_file"]   >> voc_file;
-  fs["testing1_out_file"]   >> out_file;
+  fs["testing1_voc_file"] >> voc_file;
+  fs["testing1_out_file"] >> out_file;
+  fs["testing1_gt_file"]  >> gt_file;
 
   //............................................................................
   //first level anomalie recognition 
@@ -527,51 +529,48 @@ bool testLevel2(  string & set_file, short frm_step,
   cout << "\nTest level 2 executing...\n";
 
   string  histo_file,
-          graph_file,
           obs_file,
           out_file;
 
   FileStorage fs(set_file, FileStorage::READ);
     
-  graphLstT  graph_test;
-
   Mat_<int> histos;
 
   double    thr;
 
-  bool      visual;
   //............................................................................
 
   fs["testing2_histo_file"] >> histo_file;
-  fs["testing2_graph_file"] >> graph_file;
   fs["testing2_out_file"]   >> out_file;
   fs["testing2_obs_file"]   >> obs_file;
   fs["testing2_thr"]        >> thr;
-  fs["testing2_visual"]     >> visual;
-
-
+  
   //............................................................................
-  loadDescribedGraphs(graph_file, graph_test, nullptr);
-  fs["Histograms"] >> histos;
-
+  FileStorage fs2(histo_file, FileStorage::READ);
+  fs2["Histograms"] >> histos;
+  
   //............................................................................
   //second level anomalie recognition
   auto vstr = cutil_load2strv(obs_file);
   set<int> obsO;
   for (auto &it : vstr)
     obsO.insert(stoi(it));
-
+  
+  //............................................................................
+  //second level anomalie recognition
   map<string, int> voc;
   distributionPermutation(obsO, voc);
 
   Mat_<int>     line;
+
   double        dist,
-    min = FLT_MAX;
+                min = FLT_MAX;
+
   stringstream  wrg;
 
   list<bool>    anomalyList;
 
-  for (auto &graph : graph_test) {
+  for (auto &graph : graphs) {
     auto h = distribution(graph.graph_, voc);
     for (int i = 0; i < histos.rows; ++i) {
       line = histos.row(i);
@@ -600,6 +599,28 @@ bool testLevel2(  string & set_file, short frm_step,
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void loadGt(string &file, vector<AnomalyGt> &anomalies) {
+  ifstream arc(file);
+  assert(arc.is_open());
+  set<AnomalyGt> tmp;
+  for (string line; getline(arc, line);) {
+    auto vline = cutil_string_split(line);
+    tmp.insert(AnomalyGt
+        ( stoi(vline[0]),
+          stoi(vline[1]),
+          stoi(vline[2]),
+          stoi(vline[3]),
+          vline[4]
+         )
+      );
+  }
+  anomalies.clear();
+  anomalies.resize(tmp.size());
+  copy(tmp.begin(), tmp.end(), back_inserter(anomalies));
+  arc.close();
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 

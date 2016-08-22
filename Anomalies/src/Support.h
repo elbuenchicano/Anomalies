@@ -82,12 +82,12 @@ bool testLevel2(  string &, short, map<string, int> *, map<int, string> *,
 //frame step
 //objects map  <name id>
 //inverted objects map <id name>
-void executeFunctionVec(  vector<pf>  & /*vec*/, 
-                          string      & /*cmd*/,
-                          string      & /*settings_file*/,
-                          short         /*frm_step*/, 
-                          map<string, int> * /*objs*/, 
-                          map<int, string> * /*objs_i*/);
+void executeFunctionVec(  vector<pf>  &       /*vec*/, 
+                          string      &       /*cmd*/,
+                          string      &       /*settings_file*/,
+                          short               /*frm_step*/, 
+                          map<string, int> *  /*objs*/, 
+                          map<int, string> *  /*objs_i*/);
 
 void dictionaryBuild   (  graphLstT   &       /*lst*/,
                           string      &       /*out_file*/,
@@ -116,7 +116,8 @@ void listObservedObjs   ( graphLstT   &       /*lst*/,
 ///_____________________________________________________________________________
 ///VALIDATION
 
-void loadGt             ( string      &       /*file*/);
+void loadGt             ( string      &       /*file*/,
+                          vector<AnomalyGt> & /*anomalies*/);
 
 
 

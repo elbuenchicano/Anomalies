@@ -133,6 +133,27 @@ struct Observed {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+//Anomaly structure
+struct AnomalyGt {
+  int     id_   = 0,
+          ini_  = 0,
+          fin_  = 0,
+          type_ = 0;
+  string  desc_ ="";
+  //subject id
+  //initial frame
+  //final frame
+  //anomaly type
+  //anomaly description
+  AnomalyGt(int, int, int, int, string &);
+  AnomalyGt() {};
+  AnomalyGt operator =  (const AnomalyGt &);
+};
+bool operator == (const AnomalyGt &, const AnomalyGt &);
+bool operator <  (const AnomalyGt &, const AnomalyGt &);
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 struct Palete : public Scalar {
   enum colors{RED,BLUE,GREEN};
 };
