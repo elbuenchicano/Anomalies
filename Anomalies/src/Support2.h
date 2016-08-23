@@ -7,7 +7,7 @@
 
 //this function performs test for second level of anomaly 
 bool testLevel3(  string &, short, map<string, int> *, map<int, string> *,
-                  list<Observed>  &, set<int>&);
+                  list<Observed>  &, set<int>&, int);
 
 
 #endif // !SUPPORT_2_H

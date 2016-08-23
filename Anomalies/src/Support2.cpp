@@ -6,7 +6,8 @@ bool testLevel3(  string & set_file, short frm_step,
                   map<string, int>  *objs,
                   map<int, string>  *objs_i,
                   list<Observed>    &graphs,
-                  set<int>          &obs) {
+                  set<int>          &obs,
+                  int) {
 
 
   return true;

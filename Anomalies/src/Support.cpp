@@ -251,7 +251,7 @@ void executeFunctionVec(  vector<pf>  &vec,
   for (auto & ob : objectives) {
     if (ob != "") {
       vec[stoi(ob)](  settings_file, frm_step, objs, objs_i,
-                      graphs, obsObjs);
+                      graphs, obsObjs, stoi(ob));
     }
   }
 }
@@ -345,8 +345,8 @@ void distributionBuild(graphLstT   &lst, string &out_file,
   fs << "Histograms" << histograms;
 }
 
-Mat_<int> distribution(graphType    &graph,
-  map<string, int>  &dist) {
+Mat_<int> distribution( graphType         &graph,
+                        map<string, int>  &dist) {
 
   Mat_<int> histo(1, static_cast<int>(dist.size()));
   histo = histo * 0;
@@ -362,10 +362,15 @@ Mat_<int> distribution(graphType    &graph,
     tmp = cutil_string_split(str);
 
     if (tmp.size() > 1) {
-      for (auto &it : tmp)
-        ++histo(0, dist[it]);
+      for (auto &it : tmp) {
+        auto pt = dist.find(it);
+        if(pt!=dist.end())
+          ++histo(0, dist[it]);
+      }
     }
-    ++histo(0, dist[str]);
+    auto pt = dist.find(str);
+    if (pt != dist.end())
+      ++histo(0, dist[str]);
   }
 
   return histo;
@@ -422,7 +427,8 @@ bool trainLevel1( string & set_file, short frm_step,
                   map<string, int>  *objs, 
                   map<int, string>  *objs_i,
                   list<Observed>    &graphs, 
-                  set<int>          &obs) {
+                  set<int>          &obs,
+                  int               anomalytype) {
 
   cout << "\nTrain level 1 executing...\n";
   string  out_voc_file,
@@ -448,7 +454,8 @@ bool trainLevel2( string & set_file, short frm_step,
                   map<string, int>  *objs,
                   map<int, string>  *objs_i,
                   list<Observed>    &graphs,
-                  set<int>          &obs) {
+                  set<int>          &obs,
+                  int               anomalytype) {
   cout << "\nTrain level 2 executing...\n";
 
   string  out_voc_file,
@@ -477,7 +484,8 @@ bool testLevel1(  string & set_file, short frm_step,
                   map<string, int>  *objs,
                   map<int, string>  *objs_i,
                   list<Observed>    &graphs,
-                  set<int>          &obs) {
+                  set<int>          &obs,
+                  int               anomalytype) {
   cout << "\nTest level 1 executing...\n";
 
   string  voc_file,
@@ -506,6 +514,7 @@ bool testLevel1(  string & set_file, short frm_step,
       if (!algoUtil_bin_search<string>(voc, str, pos)) {
         ss << "Warning: G-" << graph.id_ << "\t";
         ss << "Unknown word: " << str << ", In frame:" << node.data_.id_ <<"\n";
+        graph.levels_[anomalytype] = true;
       }
     }
   }
@@ -516,6 +525,7 @@ bool testLevel1(  string & set_file, short frm_step,
   //TO DO: present in images 
 
 
+  
   return true;
 }
 
@@ -525,7 +535,8 @@ bool testLevel2(  string & set_file, short frm_step,
                   map<string, int>  *objs,
                   map<int, string>  *objs_i,
                   list<Observed>    &graphs,
-                  set<int>          &obs) {
+                  set<int>          &obs, 
+                  int               anomalytype) {
   cout << "\nTest level 2 executing...\n";
 
   string  histo_file,

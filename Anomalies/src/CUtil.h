@@ -1,5 +1,6 @@
 #ifndef CUTIL_H
 #define CUTIL_H
+#define NOMINMAX
 
 #include <iostream>
 #include <vector>

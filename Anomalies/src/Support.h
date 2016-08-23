@@ -62,19 +62,19 @@ bool loadGraphs(  string          & /*set_file*/,
 
 //this function performs the extraction for first level of anomaly 
 bool trainLevel1( string &, short, map<string, int> *, map<int, string> *,
-                  list<Observed>  &, set<int>&);
+                  list<Observed>  &, set<int>&, int);
 
 //this function performs test for first level of anomaly 
 bool testLevel1(  string &, short, map<string, int> *, map<int, string> *,
-                  list<Observed>  &, set<int>&);
+                  list<Observed>  &, set<int>&, int);
 
 //this function performs the extraction for first level of anomaly 
 bool trainLevel2( string &, short, map<string, int> *, map<int, string> *,
-                  list<Observed>  &, set<int>&);
+                  list<Observed>  &, set<int>&, int);
 
 //this function performs test for second level of anomaly 
 bool testLevel2(  string &, short, map<string, int> *, map<int, string> *,
-                  list<Observed>  &, set<int>&);
+                  list<Observed>  &, set<int>&, int);
 
 //function vector
 //command separated by spaces
