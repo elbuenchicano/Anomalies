@@ -24,9 +24,13 @@ void loadFrameList      ( string,
                           map<string, int> &);
 
 //compute the distance point to object bounding box
-double  distance2object(  TrkPoint /*point*/, 
-                          TrkPoint /*NortWest point*/, 
-                          TrkPoint /*SouthEast point*/);
+double  distance2object ( TrkPoint      /*point*/, 
+                          TrkPoint      /*NortWest point*/, 
+                          TrkPoint      /*SouthEast point*/);
+
+void  splitGraph        ( Observed  &         /*obs*/,
+                          list<graphType> &   /*splits*/,
+                          short               /*tam*/);
 
 ///_____________________________________________________________________________
 ////GRAPH LOADING 
@@ -87,7 +91,8 @@ void executeFunctionVec(  vector<pf>  &       /*vec*/,
                           string      &       /*settings_file*/,
                           short               /*frm_step*/, 
                           map<string, int> *  /*objs*/, 
-                          map<int, string> *  /*objs_i*/);
+                          map<int, string> *  /*objs_i*/,
+                          graphLstT   &       /*graphs*/);
 
 void dictionaryBuild   (  graphLstT   &       /*lst*/,
                           string      &       /*out_file*/,
@@ -116,9 +121,29 @@ void listObservedObjs   ( graphLstT   &       /*lst*/,
 ///_____________________________________________________________________________
 ///VALIDATION
 
+//load gt file into an ordered vector
 void loadGt             ( string      &       /*file*/,
-                          vector<AnomalyGt> & /*anomalies*/);
+                          set<AnomalyGt> & /*anomalies*/);
 
+//validate a graphlist(sequence)
+//graph list
+//gt file in correct format
+//output file
+//anomaly type in acording to command and function vector in executefun
+//function pointer to algorithm to construct the anomalies for graph
+void validateGraphList  ( list<Observed> &    /*graphs*/,
+                          string      &       /*gt_file*/,
+                          string      &       /*out_file*/,
+                          int                 /*atype*/,
+                          double              /*jaccard_th*/,
+                          void (*vectorBuild)( //Funtion pointer
+                            Observed          & /*graph*/,
+                            set<AnomalyGt> & /*ans*/
+                            )      
+                       ); 
 
+void computeMetrics     ( set<AnomalyGt> &    /*gt*/,
+                          set<AnomalyGt> &    /*ans*/,
+                          Metric_units   &    /*metrics*/);
 
 #endif// _SUPPORT_

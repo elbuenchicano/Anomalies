@@ -126,7 +126,7 @@ struct Observed {
 
   vector<bool>  levels_;
 
-  Observed(int id):id_(id){};
+  Observed(int id) :id_(id) { levels_.resize(5); };
   ~Observed() {};
 };
 

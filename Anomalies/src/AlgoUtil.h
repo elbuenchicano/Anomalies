@@ -2,7 +2,36 @@
 #define ALGOUTIL_H
 
 #include <vector>
+#include <assert.h>
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//Metric units
+class Metric_units {
+public:
+  double tp_ = 0, tn_ = 0, fp_ = 0, fn_ = 0;
+  Metric_units() {
+    ptr = &tp_;
+  }
+  double & operator [](int pos) {
+    assert(pos >= 0 && pos < 4);
+    return ptr[pos];
+  }
+private: //if i want create a c construct 
+  double * ptr;
+};
+
+//..............................................................................
+double supp_Precision         (Metric_units uni);
+
+//..............................................................................
+double supp_Recall            (Metric_units uni);
+
+//..............................................................................
+double supp_FalsePositiveRate (Metric_units uni);
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 //t tipe must have operator < and == overloaded, vec must be sorted
 template <class t>
 bool algoUtil_bin_search(std::vector<t> & vec, t val, int & pos,

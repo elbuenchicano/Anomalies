@@ -111,7 +111,7 @@ void AnomalyControl::show() {
   
   //............................................................................
   loadDescribedGraphs(graph_file, graphs, nullptr);
-  show(graphs, video_file, seq_file, rze, nullptr);
+  show_graph( graphs, video_file, seq_file, rze, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -125,13 +125,14 @@ void AnomalyControl::train() {
                     trainLevel2  //1 - second level
                   };
 
+  graphLstT graphs;
   //............................................................................
   fs_main_["train_command"]     >> command;
   fs_main_["train_setup_file"]  >> setup_file;
 
   //............................................................................
   executeFunctionVec( functions, command, setup_file, frame_step_, 
-                      &objects_, &objects_rev_);
+                      &objects_, &objects_rev_, graphs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,6 +142,8 @@ void AnomalyControl::test() {
   string      command,
               setup_file;
   
+  graphLstT   graphs;
+
   vector<pf>  test{
                     testLevel1,//0 first
                     testLevel2,//1 second
@@ -153,143 +156,9 @@ void AnomalyControl::test() {
 
   //............................................................................
   executeFunctionVec( test, command, setup_file, frame_step_, 
-                      &objects_, &objects_rev_);
+                      &objects_, &objects_rev_, graphs);
   
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-void AnomalyControl::testing1() {
-  string  voc_file,
-          graph_file,
-          out_file;
-  
-  int     pos;
-
-  graphLstT  graph_test;
-
-  //............................................................................
-  fs_main_["testing1_voc_file"]    >> voc_file;
-  fs_main_["testing1_graph_file"]  >> graph_file;
-  fs_main_["testing1_out_file"]    >> out_file;
-  
-  //............................................................................
-  loadDescribedGraphs(graph_file, graph_test, nullptr);
-  
-  //............................................................................
-  //first level anomalie recognition 
-  ofstream arc(out_file);
-  auto voc = cutil_load2strv(voc_file);
-  for (auto &graph : graph_test) {
-    for (auto &node : graph.graph_.listNodes_) {
-      set<int> objects;
-      for (auto &par : node.objectList_)
-        objects.insert(par.first.data_.id_);
-      auto  str = set2str(objects);
-
-      if (algoUtil_bin_search<string>(voc, str, pos)) {
-        arc << "Warning: Frame" << graph.graph_.listNodes_.begin()->data_.id_ << "/n";
-        arc << "Unknown word: " << str << "/n";
-      }
-    }
-  }
-  arc.close();
-  //TO DO: present in images 
- 
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-void AnomalyControl::testing2() {
-  string  histo_file,
-          graph_file,
-          obs_file,
-          out_file;
-
-  graphLstT  graph_test;
-  
-  Mat_<int> histos;
-
-  double    thr;
-
-  bool      visual;
-  //............................................................................
-  
-  fs_main_["testing2_histo_file"] >> histo_file;
-  fs_main_["testing2_graph_file"] >> graph_file;
-  fs_main_["testing2_out_file"]   >> out_file;
-  fs_main_["testing2_obs_file"]   >> obs_file;
-  fs_main_["testing2_thr"]        >> thr;
-  fs_main_["testing2_visual"]     >> visual;
-
-  
-
-
-  //............................................................................
-  loadDescribedGraphs(graph_file, graph_test, nullptr);
-  FileStorage fs(histo_file, FileStorage::READ);
-  fs["Histograms"] >> histos;
-
-  //............................................................................
-  //second level anomalie recognition
-  auto vstr = cutil_load2strv(obs_file);
-  set<int> obsO;
-  for (auto &it : vstr)
-    obsO.insert(stoi(it));
-
-  map<string, int> voc;
-  distributionPermutation(obsO, voc);
-  
-  Mat_<int>     line;
-  double        dist, 
-                min = FLT_MAX;
-  stringstream  wrg;
-
-  list<bool>    anomalyList;
-
-  for (auto &graph : graph_test) {
-    auto h = distribution(graph.graph_, voc);
-    for (int i = 0; i < histos.rows; ++i) {
-      line = histos.row(i);
-      dist = norm(h, line);
-      if (dist < min) min = dist;
-    }
-    if (dist > thr) {
-      wrg << "Warning Graph!" << graph.graph_.listNodes_.begin()->data_.id_ << endl;
-      anomalyList.push_back(true);
-    }
-    else
-      anomalyList.push_back(false);
-  }
-
-  //............................................................................
-  //savin in output file
-  cout << wrg.str();
-  
-  if (out_file != "") {
-    ofstream arc(out_file);
-    cout << "Warnings saved in: " << out_file << endl;
-    arc << wrg.str();
-    arc.close();
-  }
-
-  //............................................................................
-  //show anomalies in screen image sequence
-
-  if (visual) {
-    string  video_file,
-            seq_file;
-    float   rze;
-    fs_main_["show_seq_file"]   >> seq_file;
-    fs_main_["show_video_file"] >> video_file;
-    fs_main_["show_resize"]     >> rze;
-    
-    show(graph_test, video_file, seq_file, rze, &anomalyList);
-  }
-
+  show_loadedGraph(setup_file, graphs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -300,17 +169,38 @@ void AnomalyControl::testing2() {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+void AnomalyControl::show_loadedGraph(string &setup_file, graphLstT  &graphs) {
+  string  seq_file,
+          video_file,
+          graph_file;
+
+  float   rze;
+  
+  bool    flag = false;
+  //............................................................................
+  FileStorage fs(setup_file, FileStorage::READ);
+  fs["show_flag"]       >> flag;
+  fs["show_seq_file"]   >> seq_file;
+  fs["show_video_file"] >> video_file;
+  fs["show_resize"]     >> rze;
+  
+  //............................................................................
+  if(flag)
+    show_graph(graphs, video_file, seq_file, rze, 0);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-void AnomalyControl::show( graphLstT   &graphs,    string  &video_file, 
-                            string      &seq_file,  float   rze,
-                            list<bool>  *anomalies) {
+void AnomalyControl::show_graph(  graphLstT   &graphs, string  &video_file,
+                                  string      &seq_file, float   rze,
+                                  int         anom_type) {
+
   Mat       img;
 
   Sequence  seq(frame_step_, seq_file, video_file, rze, objects_, objects_rev_);
 
-  
+  Scalar    RED(0, 0, 255), GREEN(0, 255, 0);
+
   //............................................................................
   //for each frame 
   for (auto & frm : seq.frames_) {
@@ -318,26 +208,29 @@ void AnomalyControl::show( graphLstT   &graphs,    string  &video_file,
     seq.getImage(frm.first, img);
     for (auto ite = graphs.begin(); ite != graphs.end(); ++ite) {
 
-      if (  ite->graph_.listNodes_.begin() != ite->graph_.listNodes_.end() &&
-            ite->graph_.listNodes_.begin()->data_.id_ ==  frm.first){ 
-        
+      if (ite->graph_.listNodes_.begin() != ite->graph_.listNodes_.end() &&
+        ite->graph_.listNodes_.begin()->data_.id_ == frm.first) {
+
         auto head = ite->graph_.listNodes_.begin();
         stringstream subname;
         subname << "Subject " << ite->id_;
-        seq.drawSub( frm.first, head->data_. list_idx_,img, 
-                     Scalar(0,0,255), subname.str());
-        
+
+        seq.drawSub(frm.first, head->data_.list_idx_, img,
+          ite->levels_[anom_type] ? RED : GREEN,
+          subname.str());
+
         //for each object in the specific frame
         for (auto &ob : head->objectList_) {
-          seq.drawObj( frm.first, ob.first.data_.list_idx_, img, 
-                       Scalar(0, 255, 0), subname.str());
+          seq.drawObj(frm.first, ob.first.data_.list_idx_, img,
+            ite->levels_[anom_type] ? RED : GREEN,
+            subname.str());
         }
         //updateing graph
         ite->graph_.listNodes_.pop_front();
       }
       else {
-        if (  ite->graph_.listNodes_.begin() == ite->graph_.listNodes_.end() &&
-              graphs.size() > 1 ) {
+        if (ite->graph_.listNodes_.begin() == ite->graph_.listNodes_.end() &&
+          graphs.size() > 1) {
           auto it = ite;
           --ite;
           graphs.erase(it);
@@ -348,6 +241,7 @@ void AnomalyControl::show( graphLstT   &graphs,    string  &video_file,
     if (waitKey(30) >= 0) break;
   }
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

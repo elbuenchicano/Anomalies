@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <map>
 #include <memory>
-
+#include <stack>
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 //Cutil is a utilitaries c++ functions for strings and directories............

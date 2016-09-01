@@ -157,6 +157,37 @@ double distance2object( TrkPoint pt, TrkPoint sw, TrkPoint ne){
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+void splitGraph(  Observed        &obs,
+                  list<graphType> &splits,
+                  short           tam){
+  splits.clear();
+  int cont;
+
+  auto end = obs.graph_.listNodes_.end();
+ 
+  for (int i = 0; i < tam; ++i) {
+    auto it = obs.graph_.listNodes_.begin();
+    //leaving the first 
+    for (int j = 0; j < i; ++j)++it;
+
+    cont = 0;
+    //making tuples
+    graphType tmp;
+    for (auto it = obs.graph_.listNodes_.begin(); it != end; ++it) {
+      if (cont++ % tam == 0 && tmp.listNodes_.size()>0) {
+        splits.push_back(tmp);
+        tmp.listNodes_.clear();
+      }
+      else {
+        tmp.listNodes_.push_back(*it);
+      }
+
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //load described graph 
 //set to string 
@@ -240,11 +271,10 @@ void executeFunctionVec(  vector<pf>  &vec,
                           string      &settings_file,
                           short       frm_step, 
                           map<string, int> *objs, 
-                          map<int, string> *objs_i){
+                          map<int, string> *objs_i,
+                          graphLstT   &graphs){
   
-  list<Observed>  graphs;
   set<int>        obsObjs;
-
   auto objectives = cutil_string_split(cmd);
   loadGraphs(settings_file, graphs, obsObjs);
   
@@ -514,7 +544,8 @@ bool testLevel1(  string & set_file, short frm_step,
       if (!algoUtil_bin_search<string>(voc, str, pos)) {
         ss << "Warning: G-" << graph.id_ << "\t";
         ss << "Unknown word: " << str << ", In frame:" << node.data_.id_ <<"\n";
-        graph.levels_[anomalytype] = true;
+        node.data_.anomaly_         = true;
+        graph.levels_[anomalytype]  = true;
       }
     }
   }
@@ -522,10 +553,9 @@ bool testLevel1(  string & set_file, short frm_step,
   ofstream arc(out_file);
   arc << ss.str();
   arc.close();
+
   //TO DO: present in images 
 
-
-  
   return true;
 }
 
@@ -612,13 +642,12 @@ bool testLevel2(  string & set_file, short frm_step,
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-void loadGt(string &file, vector<AnomalyGt> &anomalies) {
+void loadGt(string &file, set<AnomalyGt> &anomalies) {
   ifstream arc(file);
   assert(arc.is_open());
-  set<AnomalyGt> tmp;
   for (string line; getline(arc, line);) {
     auto vline = cutil_string_split(line);
-    tmp.insert(AnomalyGt
+    anomalies.insert(AnomalyGt
         ( stoi(vline[0]),
           stoi(vline[1]),
           stoi(vline[2]),
@@ -627,10 +656,115 @@ void loadGt(string &file, vector<AnomalyGt> &anomalies) {
          )
       );
   }
-  anomalies.clear();
-  anomalies.resize(tmp.size());
-  copy(tmp.begin(), tmp.end(), back_inserter(anomalies));
+  //copy(tmp.begin(), tmp.end(), back_inserter(anomalies));
   arc.close();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//given a graph this function creates the anomaly vector to be compared & shown
+//in this specific case is for anomaly type 1, epecific objects does not be 
+//seen before in training stage
+static void anomaly1_vectorBuild(Observed &graph, set<AnomalyGt> &ans) {
+  bool start = false;
+  string desc = "";
+  stack<AnomalyGt> cont;
+  for (auto &node : graph.graph_.listNodes_) {
+    //in case of anomalie creates or continues with the last anoamly
+    if (node.data_.anomaly_) {
+      //in case of anomalie does not been started
+      if (!start) {
+        cont.push(
+          AnomalyGt(graph.id_, node.data_.id_, node.data_.id_, 1, desc)
+          );
+      }
+      //when an anomaly was created before
+      else{
+        cont.top().fin_ = node.data_.id_;
+      }
+      start = true;
+    }
+    //in case of a normal node without anomaly
+    else {
+      if (!cont.empty()) {
+        auto top = cont.top();
+        ans.insert(top);
+      }
+      start = false;
+    }
+  }
+}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+inline static 
+double jacccard_index(const AnomalyGt &A, const AnomalyGt &B) {
+
+  double  left_int  = A.ini_, 
+          left_ext  = B.ini_, 
+          right_int = A.fin_,
+          right_ext = B.fin_;
+
+  if (left_int < left_ext)
+    swap(left_ext, left_int);
+
+  if (right_ext < right_int)
+    swap(right_ext, right_int);
+
+  double  A_n_B = left_int - right_int;
+  double  A_u_B = left_ext + right_ext;
+
+  return  A_n_B < 0 ? 0 : A_n_B / A_u_B;
+
+}
+
+void computeMetrics(  set<AnomalyGt> &    gt,
+                      set<AnomalyGt> &    ans,
+                      Metric_units   &    metrics,
+                      double              jaccard_th
+) {
+  double max_jacc = 0;
+  vector<bool> checked(ans.size());
+  for (auto &an : gt) {
+    size_t  choose  = -1, 
+            pos     = 0;
+    for (auto it = ans.begin(); it != ans.end() &&
+                                an.fin_ >= it->ini_ ; ++it) {
+      auto jacc = jacccard_index(an, *it);
+      if (jacc > max_jacc) {
+        max_jacc = jacc;
+        choose = pos;
+      }
+      ++pos;
+    }
+    if (max_jacc >= jaccard_th) {
+      //metrics.
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void validateGraphList( list<Observed>  &graphs, 
+                        string          &gt_file, 
+                        string          &out_file, 
+                        int             atype,
+                        double          jaccard_th,
+                        void(*vectorBuild)(
+                          Observed       &,
+                          set<AnomalyGt> &)
+  ){
+  
+  set<AnomalyGt>  anomalies,
+                  anom_obs;
+
+  //............................................................................
+  loadGt(gt_file, anomalies);
+  
+  for (auto &graph : graphs) 
+    vectorBuild(graph, anom_obs);
+  
+  
+
 }
 
 

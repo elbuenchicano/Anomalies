@@ -33,26 +33,23 @@ class AnomalyControl
 
   void test         ();
 
-  void testing1     ();
-
-  void testing2     ();
-
   void show         ();
 
   //secondary functions.........................................................
 
   //graph to be shown
-  
-  //create dictionary 
-  //receives graph list 
-  
-  //show the sequence
-  void  show            ( graphLstT   &       /*lst*/,
+  void show_graph       ( graphLstT   &       /*graphs*/,
                           string      &       /*video_file*/,
                           string      &       /*seq_file*/,
                           float               /*rze*/,
-                          list<bool>  *       /*anomalies*/);
+                          int                 /*anom_type*/);
 
+  void show_loadedGraph ( string      &       /*setup_file*/,
+                          graphLstT   &       /*graphs*/);
+
+  //create dictionary 
+  //receives graph list 
+  
   //load graph from file
   void  graphBuild      ( string      &       /*seq_file*/,
                           string      &       /*video_file*/,
