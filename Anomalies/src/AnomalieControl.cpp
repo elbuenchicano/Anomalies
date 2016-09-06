@@ -204,6 +204,7 @@ void AnomalyControl::show_graph(  graphLstT   &graphs, string  &video_file,
   //............................................................................
   //for each frame 
   for (auto & frm : seq.frames_) {
+    cout << frm.first << endl;
     //getting image by request
     seq.getImage(frm.first, img);
     for (auto ite = graphs.begin(); ite != graphs.end(); ++ite) {
@@ -230,7 +231,7 @@ void AnomalyControl::show_graph(  graphLstT   &graphs, string  &video_file,
       }
       else {
         if (ite->graph_.listNodes_.begin() == ite->graph_.listNodes_.end() &&
-          graphs.size() > 1) {
+          graphs.size() > 1 && ite != graphs.begin()) {
           auto it = ite;
           --ite;
           graphs.erase(it);

@@ -102,6 +102,7 @@ typedef Actor_<BaseDefinitions_tr> Actor;
 ////////////////////////////////////////////////////////////////////////////////
 struct ActorLabel {
   int   id_,
+        end_,
         list_idx_;
 
   bool  anomaly_ = false;

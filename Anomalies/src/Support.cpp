@@ -159,29 +159,26 @@ double distance2object( TrkPoint pt, TrkPoint sw, TrkPoint ne){
 ////////////////////////////////////////////////////////////////////////////////
 void splitGraph(  Observed        &obs,
                   list<graphType> &splits,
-                  short           tam){
+                  short           tam) {
   splits.clear();
   int cont;
 
   auto end = obs.graph_.listNodes_.end();
- 
+
   for (int i = 0; i < tam; ++i) {
     auto it = obs.graph_.listNodes_.begin();
     //leaving the first 
     for (int j = 0; j < i; ++j)++it;
 
-    cont = 0;
+    cont = 1;
     //making tuples
     graphType tmp;
-    for (auto it = obs.graph_.listNodes_.begin(); it != end; ++it) {
-      if (cont++ % tam == 0 && tmp.listNodes_.size()>0) {
+    for (; it != end; ++it) {
+      tmp.listNodes_.push_back(*it);
+      if (cont++ % tam == 0) {
         splits.push_back(tmp);
         tmp.listNodes_.clear();
       }
-      else {
-        tmp.listNodes_.push_back(*it);
-      }
-
     }
   }
 }

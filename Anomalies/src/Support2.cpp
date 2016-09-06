@@ -43,6 +43,9 @@ bool testLevel3(  string & set_file, short frm_step,
 double matchNodes(Observed &graph_test, list<Observed> &graphs_training, string out_matching) {
 //  graph_test.graph_ = resume(graph_test);
 
+  list<graphType> res;
+  splitGraph(graph_test, res, 3);
+
   double match_cost = 0.0, matchs = 0.0, distance = 0.0;
   int adj = 0, i = 0, Anom = 0, aux = 0, use = 0;
 
@@ -123,7 +126,7 @@ double matchNodes(Observed &graph_test, list<Observed> &graphs_training, string 
     }
     i++;
     distance = getDistance(costMatrix, use, graph_train.graph_.listNodes_.size(),
-                           graph_test.graph_.listNodes_.size(), matchs);
+                                  graph_test.graph_.listNodes_.size(), matchs);
     outFile << "Distance Test Graph " << graph_test.id_ << " to Graph Training "
             << i << " = " << distance << endl;
     if (Anom > distance)
