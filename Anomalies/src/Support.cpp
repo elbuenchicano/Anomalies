@@ -459,10 +459,20 @@ bool trainLevel1( string & set_file, short frm_step,
 
   cout << "\nTrain level 1 executing...\n";
   string  out_voc_file,
-          out_dist_file;
+          out_dist_file,
+          out_obs_file;
+
   FileStorage fs(set_file, FileStorage::READ);
   fs["train1_out_voc_file"]   >> out_voc_file;
   fs["train1_out_dist_file"]  >> out_dist_file;
+  fs["train2_out_obs_file"]   >> out_obs_file;
+
+  //............................................................................
+  //saving the observed objects
+  ofstream arc(out_obs_file);
+  cout << "Observed ojects saved in: " << out_obs_file << endl;
+  cutil_cont2os(arc, obs, "\n");
+  arc.close();
 
   //............................................................................
   //saving vocabulary in file
@@ -507,6 +517,7 @@ bool trainLevel2( string & set_file, short frm_step,
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void anomaly1_vectorBuild(Observed &graph, set<AnomalyGt> &ans);
 bool testLevel1(  string & set_file, short frm_step,
                   map<string, int>  *objs,
                   map<int, string>  *objs_i,
@@ -517,28 +528,49 @@ bool testLevel1(  string & set_file, short frm_step,
 
   string  voc_file,
           out_file,
-          gt_file;
+          out_val_file,
+          gt_file,
+          obs_file;
 
   int     pos;
+
+  double  prec, 
+          recall;
+
+  set<int> obsO;
 
   FileStorage fs(set_file, FileStorage::READ);
   //............................................................................
   fs["testing1_voc_file"] >> voc_file;
   fs["testing1_out_file"] >> out_file;
   fs["testing1_gt_file"]  >> gt_file;
+  fs["testing1_out_val_file"] >> out_val_file;
+  fs["testing1_obs_file"] >> obs_file;
+  fs["testing1_recall"]   >> recall;
+  fs["testing1_prec"]     >> prec;
+
+  //............................................................................
+  auto vstr = cutil_load2strv(obs_file);
+  for (auto &it : vstr)
+    obsO.insert(stoi(it));
 
   //............................................................................
   //first level anomalie recognition 
   stringstream ss;
   auto voc = cutil_load2strv(voc_file);
+  bool flag;
   for (auto &graph : graphs) {
     for (auto &node : graph.graph_.listNodes_) {
       set<int> objects;
-      for (auto &par : node.objectList_)
+      flag = false;
+      for (auto &par : node.objectList_) {
         objects.insert(par.first.data_.id_);
+        if (obsO.find(par.first.data_.id_) == obsO.end())
+          flag = true;
+      }
       auto  str = set2str(objects);
 
-      if (!algoUtil_bin_search<string>(voc, str, pos)) {
+      if (!algoUtil_bin_search<string>(voc, str, pos) || flag) {
         ss << "Warning: G-" << graph.id_ << "\t";
         ss << "Unknown word: " << str << ", In frame:" << node.data_.id_ <<"\n";
         node.data_.anomaly_         = true;
@@ -552,6 +584,10 @@ bool testLevel1(  string & set_file, short frm_step,
   arc.close();
 
   //TO DO: present in images 
+
+  validateGraphList(graphs, gt_file, out_val_file, 0,
+    pair<double, double>(prec, recall), anomaly1_vectorBuild);
+
 
   return true;
 }
@@ -686,6 +722,7 @@ static void anomaly1_vectorBuild(Observed &graph, set<AnomalyGt> &ans) {
       if (!cont.empty()) {
         auto top = cont.top();
         ans.insert(top);
+        cont.pop();
       }
       start = false;
     }
@@ -693,50 +730,68 @@ static void anomaly1_vectorBuild(Observed &graph, set<AnomalyGt> &ans) {
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+//Function HG from
+//ACTION DETECTION USING MULTIPLE SPATIAL - TEMPORAL INTEREST POINT FEATURES 
 inline static 
-double jacccard_index(const AnomalyGt &A, const AnomalyGt &B) {
+int HG(const AnomalyGt &Q_g_i, set<AnomalyGt> &Q_d, double delta) {
 
-  double  left_int  = A.ini_, 
-          left_ext  = B.ini_, 
-          right_int = A.fin_,
-          right_ext = B.fin_;
+  double  left_int, 
+          right_int,
+          A_n_B, 
+          temp_jac,
+          Q_g_i_ =  Q_g_i.fin_- Q_g_i.ini_;
 
-  if (left_int < left_ext)
-    swap(left_ext, left_int);
-
-  if (right_ext < right_int)
-    swap(right_ext, right_int);
-
-  double  A_n_B = left_int - right_int;
-  double  A_u_B = left_ext + right_ext;
-
-  return  A_n_B < 0 ? 0 : A_n_B / A_u_B;
-
+  for (auto &Q_d_k : Q_d) {
+    left_int  = std::max(Q_d_k.ini_, Q_g_i.ini_);
+    right_int = std::min(Q_d_k.fin_, Q_g_i.fin_);
+    A_n_B     = right_int - left_int;
+    temp_jac  = A_n_B / Q_g_i_;
+    if (temp_jac > 0 && temp_jac > delta)
+      return 1;
+  }
+  return 0;
 }
 
-void computeMetrics(  set<AnomalyGt> &    gt,
-                      set<AnomalyGt> &    ans,
-                      Metric_units   &    metrics,
-                      double              jaccard_th
-) {
-  double max_jacc = 0;
-  vector<bool> checked(ans.size());
-  for (auto &an : gt) {
-    size_t  choose  = -1, 
-            pos     = 0;
-    for (auto it = ans.begin(); it != ans.end() &&
-                                an.fin_ >= it->ini_ ; ++it) {
-      auto jacc = jacccard_index(an, *it);
-      if (jacc > max_jacc) {
-        max_jacc = jacc;
-        choose = pos;
-      }
-      ++pos;
-    }
-    if (max_jacc >= jaccard_th) {
-      //metrics.
-    }
+inline static
+int TD(const AnomalyGt &Q_d_j, set<AnomalyGt> &Q_g, double delta) {
+
+  double  left_int,
+          right_int,
+          A_n_B,
+          temp_jac,
+          Q_d_j_ = Q_d_j.fin_ - Q_d_j.ini_;
+
+  for (auto &Q_g_k : Q_g) {
+    left_int  = std::max(Q_g_k.ini_, Q_d_j.ini_);
+    right_int = std::min(Q_g_k.fin_, Q_d_j.fin_);
+    A_n_B     = right_int - left_int;
+    temp_jac  = A_n_B / Q_d_j_;
+    if (temp_jac > 0 && temp_jac > delta)
+      return 1;
   }
+  return 0;
+}
+
+
+
+//compute precision recall using technique found in
+//ACTION DETECTION USING MULTIPLE SPATIAL - TEMPORAL INTEREST POINT FEATURES 
+void computePrecisionRecall(  set<AnomalyGt> &    Q_g,
+                              set<AnomalyGt> &    Q_d,
+                              double         &    prec,
+                              double         &    recall,
+                              double              jac_prec,
+                              double              jac_recall) {
+  prec    = 0;
+  recall  = 0;
+  
+  for (auto &Q_g_i : Q_g)
+    prec += HG(Q_g_i, Q_d, jac_prec);
+  prec   /= Q_g.size();
+
+  for (auto &Q_d_j : Q_d)
+    recall  += TD(Q_d_j, Q_g, jac_recall);
+  recall /= Q_d.size();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -745,21 +800,29 @@ void validateGraphList( list<Observed>  &graphs,
                         string          &gt_file, 
                         string          &out_file, 
                         int             atype,
-                        double          jaccard_th,
+                        pair<double,double>  jaccard_th,
                         void(*vectorBuild)(
                           Observed       &,
                           set<AnomalyGt> &)
   ){
   
-  set<AnomalyGt>  anomalies,
-                  anom_obs;
+  set<AnomalyGt>  Q_g,
+                  Q_d;
+
+  double          precision,
+                  recall;
 
   //............................................................................
-  loadGt(gt_file, anomalies);
+  loadGt(gt_file, Q_g);
   
   for (auto &graph : graphs) 
-    vectorBuild(graph, anom_obs);
-  
+    vectorBuild(graph, Q_d);
+
+  computePrecisionRecall( Q_g, Q_d, precision, recall, 
+                          jaccard_th.first, jaccard_th.second);
+
+  cout << precision << endl;
+  cout << recall << endl;
   
 
 }
