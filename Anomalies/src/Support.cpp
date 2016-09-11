@@ -585,7 +585,7 @@ bool testLevel1(  string & set_file, short frm_step,
 
   //TO DO: present in images 
 
-  validateGraphList(graphs, gt_file, out_val_file, 0,
+  validateGraphList(graphs, gt_file, out_val_file, 
     pair<double, double>(prec, recall), anomaly1_vectorBuild);
 
 
@@ -796,10 +796,16 @@ void computePrecisionRecall(  set<AnomalyGt> &    Q_g,
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+//graphs: are test graphs with the anomaly mark, it means, they have been prev.
+//        processed 
+//gt_file: is the full path for corresponding gt file
+//out_file: is the full path for output file
+//jaccar values for precision recall repectevely
+//pointer to a funtion that build the set of found anomalies in the graph
 void validateGraphList( list<Observed>  &graphs, 
                         string          &gt_file, 
-                        string          &out_file, 
-                        int             atype,
+                        string          &out_file,
                         pair<double,double>  jaccard_th,
                         void(*vectorBuild)(
                           Observed       &,
@@ -824,6 +830,9 @@ void validateGraphList( list<Observed>  &graphs,
   cout << precision << endl;
   cout << recall << endl;
   
+  ofstream fil(out_file, ios::app);
+  fil << precision << " " << recall << endl;
+  fil.close();
 
 }
 

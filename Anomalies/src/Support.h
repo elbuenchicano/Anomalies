@@ -129,13 +129,11 @@ void loadGt             ( string      &       /*file*/,
 //graph list
 //gt file in correct format
 //output file
-//anomaly type in acording to command and function vector in executefun
 //jaccard threshold 
 //function pointer to algorithm to construct the anomalies for graph
 void validateGraphList  ( list<Observed> &    /*graphs*/,
                           string      &       /*gt_file*/,
                           string      &       /*out_file*/,
-                          int                 /*atype*/,
                           pair<double, double>/*jaccard_th*/,
                           void (*vectorBuild)( //Funtion pointer
                             Observed          & /*graph*/,
