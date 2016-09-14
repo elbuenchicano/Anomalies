@@ -57,7 +57,8 @@ class AnomalyControl
                           float               /*rze*/,
                           double              /*distance_obj_thr*/,
                           double              /*distance_sub_thr*/,
-                          int                 /*time_life*/);
+                          int                 /*time_life*/,
+                          double              /*jaccard*/);
   
   
 public:

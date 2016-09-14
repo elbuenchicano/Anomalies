@@ -76,6 +76,9 @@ struct Actor_ {
   int             old_ = 0,
                   id_  = 0;
 
+  Point           sw_,
+                  ne_;
+
   bool            visited = true,
                   picked  = false;
 

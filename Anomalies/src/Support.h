@@ -28,9 +28,14 @@ double  distance2object ( TrkPoint      /*point*/,
                           TrkPoint      /*NortWest point*/, 
                           TrkPoint      /*SouthEast point*/);
 
+//split graph into small graphs
 void  splitGraph        ( Observed  &         /*obs*/,
                           list<graphType> &   /*splits*/,
                           short               /*tam*/);
+
+//compute the jaccard of two bounding box
+double jaccardBbox      ( Point &, Point &, Point &, Point &);
+
 
 ///_____________________________________________________________________________
 ////GRAPH LOADING 

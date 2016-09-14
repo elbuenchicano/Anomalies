@@ -66,6 +66,8 @@ void AnomalyControl::graphBuilding() {
           out_token,
           video_file;
 
+  double  jaccard;
+
   
   //............................................................................
    
@@ -75,7 +77,8 @@ void AnomalyControl::graphBuilding() {
   fs_main_["featExtract_time_life"]         >> time_life;
   fs_main_["featExtract_out_dir"]           >> out_dir;
   fs_main_["featExtract_out_token"]         >> out_token;
-
+  fs_main_["featExtract_jaccard"]           >> jaccard;
+  
   fs_main_["show_video_file"]               >> video_file;
   fs_main_["show_resize"]                   >> rze;
   
@@ -84,7 +87,7 @@ void AnomalyControl::graphBuilding() {
   
   auto str = out_dir + cutil_LastName(seq_file) + out_token;
   graphBuild( seq_file, video_file, str, rze, distance_obj_thr, distance_sub_thr, 
-              time_life);
+              time_life, jaccard);
 
   
 }
@@ -239,7 +242,11 @@ void AnomalyControl::show_graph(  graphLstT   &graphs, string  &video_file,
       }
     }
     imshow("Frame", img);
-    if (waitKey(30) >= 0) break;
+    char flag;
+    if (waitKey(30) >= 0) {
+      char c = waitKey();
+      if (c >= 30)break;
+    }
   }
 }
 
@@ -253,7 +260,8 @@ void AnomalyControl::graphBuild( string  &seq_file,
                                   float   rze,
                                   double  distance_obj_thr, 
                                   double  distance_sub_thr,
-                                  int     time_life) {
+                                  int     time_life,
+                                  double  jaccard) {
   list< Actor >   active_sub;
 
   stringstream    ss;
@@ -289,12 +297,25 @@ void AnomalyControl::graphBuild( string  &seq_file,
           active_sub.erase(er);
         }
         else {
-          Point prd = ite->trk_.predict();
-          auto dist = cv::norm(prd - subj.center());
-          if (dist < distance_sub_thr && !ite->picked) {
-            mindist = dist;
-            nearest = ite;
+          if (!ite->picked) {
+            //....................................................................
+            //in this part we take acount the distance and the jaccard
+            Point prd = ite->trk_.predict();
+
+            auto dist = cv::norm(prd - subj.center());
+            auto jacc = jaccardBbox(  ite->sw_, ite->ne_,
+                                      subj.sw_, subj.ne_);
+            
+            //in case of jaccard ou distance achieves with condition the it will 
+            //be considered as a candidate
+          
+            if (dist < distance_sub_thr || jacc > jaccard) {
+              mindist = dist;
+              nearest = ite;
+            }
           }
+
+          //....................................................................
           ++ite;
         }
       }
@@ -313,6 +334,8 @@ void AnomalyControl::graphBuild( string  &seq_file,
         TrkPoint center = subj.center();
         nearest->trk_.estimate(center);
       }
+      nearest->ne_ = subj.ne_;
+      nearest->sw_ = subj.sw_;
       
       //seq.drawSub(subj, img, Scalar(100, 150, 255), "");
 
