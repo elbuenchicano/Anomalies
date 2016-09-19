@@ -85,6 +85,16 @@ bool trainLevel2( string &, short, map<string, int> *, map<int, string> *,
 bool testLevel2(  string &, short, map<string, int> *, map<int, string> *,
                   list<Observed>  &, set<int>&, int);
 
+//NGRAMS
+//this function performs the extraction for fourth level of anomaly 
+bool trainLevel4(string &, short, map<string, int> *, map<int, string> *,
+  list<Observed>  &, set<int>&, int);
+
+//NGRAMS
+//this function performs test for fourth level of anomaly 
+bool testLevel4(string &, short, map<string, int> *, map<int, string> *,
+  list<Observed>  &, set<int>&, int);
+
 //function vector
 //command separated by spaces
 //setting file

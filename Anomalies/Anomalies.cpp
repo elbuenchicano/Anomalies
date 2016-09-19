@@ -11,7 +11,7 @@ int main(int arg, char ** argv)
 
   //string static_file = "D:/Iniciacao/Anomalies/main.yml";
   //string static_file = "e:/research/anomalies/matheus/graphs/scripts/test1.yml";
-  string static_file = "z:/tmp/anomalies/scripts/general/video_00017.yml";
+  string static_file = "z:/tmp/anomalies/scripts/general/video_00001.yml";
 
   AnomalyControl AControl(arg > 1 ? argv[1] : static_file);
 

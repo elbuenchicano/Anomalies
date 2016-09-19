@@ -171,6 +171,43 @@ typedef list<Observed>                graphLstT;
 typedef bool(*pf) ( string &, short, map<string, int> *, map<int, string> *,
                     list<Observed>  &, set<int>&, int);
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+template <class t>
+struct Ngrams {
+
+  typedef map<t, double>  mapTI;
+  typedef map<t, mapTI>   mapTM;
+
+  mapTI   hashObj_;
+  mapTM   hashFreq_;
+
+  //............................................................................
+  Ngrams() = default;
+
+  void insertBigram(t a, t b) {
+
+    hashFreq_[a][b] = hashFreq_[a].find(b) != hashFreq_[a].end() ?
+      hashFreq_[a][b] + 1 : 1;
+
+    hashObj_[a] = hashObj_.find(a) != hashObj_.end() ? hashObj_[a] + 1 : 1;
+
+    hashObj_[b] = hashObj_.find(b) != hashObj_.end() ? hashObj_[b] + 1 : 1;
+  }
+
+  //using ngram (markov condition) the probability of some bigram appear 
+  //P(A|B) = A(AB)/P(P)
+  //using maximum likelihood
+  //P(A|B) ~ count(AB) / count (B)   
+  double probability(t a, t b) {
+    if (hashObj_.find(a) == hashObj_.end() || hashObj_.find(b) == hashObj_.end())
+      return 0;
+    return hashFreq_[a][b] / hashObj_[b];
+  }
+
+
+};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///Olds classes
@@ -178,6 +215,8 @@ struct FrameItem {
   int frameNumber;                  //real frame 
   vector<vector<int> > sub_obj[2];  //0 = subjects 1 = objects
 };
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 

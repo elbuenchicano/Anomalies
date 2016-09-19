@@ -101,6 +101,8 @@ void AnomalyControl::show() {
           graph_file;
 
   float   rze;
+  
+  int     flag;
 
   list<FrameItem> frame_list;
 
@@ -111,10 +113,22 @@ void AnomalyControl::show() {
   fs_main_["show_video_file"] >> video_file;
   fs_main_["show_resize"]     >> rze;
   fs_main_["show_graph_file"] >> graph_file;
-  
+  fs_main_["show_flag"] >> flag;
   //............................................................................
-  loadDescribedGraphs(graph_file, graphs, nullptr);
-  show_graph( graphs, video_file, seq_file, rze, 0);
+  switch (flag)
+  {
+  case 0: {
+    loadDescribedGraphs(graph_file, graphs, nullptr);
+    show_graph(graphs, video_file, seq_file, rze, 0);
+    break;
+  }
+  case 1: {
+    show_seq(video_file, seq_file, rze);
+  }
+  default:
+    break;
+  }
+  
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -242,13 +256,43 @@ void AnomalyControl::show_graph(  graphLstT   &graphs, string  &video_file,
       }
     }
     imshow("Frame", img);
-    char flag;
     if (waitKey(30) >= 0) {
       char c = waitKey();
       if (c >= 30)break;
     }
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void AnomalyControl::show_seq(  string      &       video_file,
+                                string      &       seq_file,
+                                float               rze){
+  
+  Mat       img;
+
+  Sequence  seq(frame_step_, seq_file, video_file, rze, objects_, objects_rev_);
+
+  int       pos = 0;
+
+  //............................................................................
+  //for such frame
+  cout << "Video frame length " << seq.frames_.size() * frame_step_ << endl;
+  cout << "Give the star frame\n";
+  cin >> pos;
+  if (pos < 0) pos = 0;
+  while (pos <= seq.frames_.rbegin()->first) {
+    cout << "Frame number: " << pos << endl;
+    seq.getImage(pos, img);
+    seq.drawAllObjs(pos, img);
+    seq.drawAllSubs(pos, img);
+    imshow("Frame", img);
+    char c = waitKey();
+    if (c == 'q')break;
+    pos += frame_step_;
+  }
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -357,6 +401,7 @@ void AnomalyControl::graphBuild( string  &seq_file,
         ++obj_pos;
       }
       ++sub_pos;
+      nearest = active_sub.end();
     }
     //updating the years 
     for (auto & it : active_sub) {

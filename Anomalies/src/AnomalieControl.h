@@ -35,6 +35,7 @@ class AnomalyControl
 
   void show         ();
 
+
   //secondary functions.........................................................
 
   //graph to be shown
@@ -43,6 +44,11 @@ class AnomalyControl
                           string      &       /*seq_file*/,
                           float               /*rze*/,
                           int                 /*anom_type*/);
+
+  void show_seq         ( string      &       /*video_file*/,
+                          string      &       /*seq_file*/,
+                          float               /*rze*/);
+
 
   void show_loadedGraph ( string      &       /*setup_file*/,
                           graphLstT   &       /*graphs*/);
