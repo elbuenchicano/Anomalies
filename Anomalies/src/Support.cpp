@@ -508,16 +508,102 @@ bool trainLevel4( string & set_file, short frm_step,
                   list<Observed>    &graphs,
                   set<int>          &obs,
                   int               anomalytype) {
+
+  cout << "\nTrain level 4 executing...\n";
+  string  out_hist_file,
+          out_bigram_file;
+
+  Ngrams<string> ngram2;
+
+  //............................................................................
+  FileStorage fs(set_file, FileStorage::READ);
+  fs["train4_out_hist_file"]    >> out_hist_file;
+  fs["train4_out_bigram_file"]  >> out_bigram_file;
+  
+  //............................................................................
+  
+  for (auto &graph : graphs) {
+    string prev = "#";
+    for (auto &node : graph.graph_.listNodes_) {
+      set<int> objects;
+      for (auto &par : node.objectList_) {
+        objects.insert(par.first.data_.id_);
+      }
+      auto  str = set2str(objects);
+      ngram2.insertBigram(prev, str);
+      prev = str;
+    }
+  }
+
+  //............................................................................
+  ngram2.save2files(out_hist_file, out_bigram_file);
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+static void anomaly1_vectorBuild(Observed &graph, set<AnomalyGt> &ans);
 bool testLevel4(  string & set_file, short frm_step,
                   map<string, int>  *objs,
                   map<int, string>  *objs_i,
                   list<Observed>    &graphs,
                   set<int>          &obs,
                   int               anomalytype) {
+
+  cout << "\nTest level 4 executing...\n";
+  string  out_file,
+          hist_file,
+          bigram_file,
+          gt_file,
+          out_val_file;
+
+  Ngrams<string> ngram2;
+
+  double  prec, 
+          recall;
+  //............................................................................
+  FileStorage fs(set_file, FileStorage::READ);
+  fs["testing4_hist_file"]    >> hist_file;
+  fs["testing4_bigram_file"]  >> bigram_file;
+  fs["testing4_out_file"]     >> out_file;
+  fs["testing4_gt_file"]      >> gt_file;
+  fs["testing4_out_val_file"] >> out_val_file;
+  fs["testing4_recall"]       >> recall;
+  fs["testing4_prec"]         >> prec;
+  
+  //............................................................................
+  ngram2.load_structures(hist_file, bigram_file);
+  stringstream ss;
+  for (auto &graph : graphs) {
+    string prev = "#";
+    for (auto &node : graph.graph_.listNodes_) {
+      set<int> objects;
+      for (auto &par : node.objectList_) {
+        objects.insert(par.first.data_.id_);
+      }
+      auto  act = set2str(objects);
+      if (ngram2.probability(prev, act) < 0.1) {
+        ss  << "Warning: G-" << graph.id_ << "\t";
+        ss  << "Low probability: [" << prev << " -> "
+            <<" ], In frame:" << node.data_.id_ << "\n";
+        node.data_.anomaly_         = true;
+        graph.levels_[anomalytype]  = true;
+      }
+      prev = act;
+    }
+  }
+
+  cout << ss.str();
+  ofstream arc(out_file);
+  arc << ss.str();
+  arc.close();
+
+  //TO DO: present in images 
+
+  validateGraphList(graphs, gt_file, out_val_file,
+    pair<double, double>(prec, recall), anomaly1_vectorBuild);
+
+  return true;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -551,7 +637,7 @@ bool trainLevel2( string & set_file, short frm_step,
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void anomaly1_vectorBuild(Observed &graph, set<AnomalyGt> &ans);
+
 bool testLevel1(  string & set_file, short frm_step,
                   map<string, int>  *objs,
                   map<int, string>  *objs_i,
@@ -775,13 +861,15 @@ int HG(const AnomalyGt &Q_g_i, set<AnomalyGt> &Q_d, double delta) {
           temp_jac,
           Q_g_i_ =  Q_g_i.fin_- Q_g_i.ini_;
 
-  for (auto &Q_d_k : Q_d) {
-    left_int  = std::max(Q_d_k.ini_, Q_g_i.ini_);
-    right_int = std::min(Q_d_k.fin_, Q_g_i.fin_);
+  for (auto Q_d_k = Q_d.begin(); Q_d_k != Q_d.end(); ++Q_d_k){
+    left_int  = std::max(Q_d_k->ini_, Q_g_i.ini_);
+    right_int = std::min(Q_d_k->fin_, Q_g_i.fin_);
     A_n_B     = right_int - left_int;
     temp_jac  = A_n_B / Q_g_i_;
-    if (temp_jac > 0 && temp_jac > delta)
+    if (temp_jac > 0 && temp_jac > delta) {
+      Q_d.erase(Q_d_k);
       return 1;
+    }
   }
   return 0;
 }
@@ -795,13 +883,15 @@ int TD(const AnomalyGt &Q_d_j, set<AnomalyGt> &Q_g, double delta) {
           temp_jac,
           Q_d_j_ = Q_d_j.fin_ - Q_d_j.ini_;
 
-  for (auto &Q_g_k : Q_g) {
-    left_int  = std::max(Q_g_k.ini_, Q_d_j.ini_);
-    right_int = std::min(Q_g_k.fin_, Q_d_j.fin_);
+  for (auto Q_g_k = Q_g.begin(); Q_g_k != Q_g.end(); ++Q_g_k) {
+    left_int  = std::max(Q_g_k->ini_, Q_d_j.ini_);
+    right_int = std::min(Q_g_k->fin_, Q_d_j.fin_);
     A_n_B     = right_int - left_int;
     temp_jac  = A_n_B / Q_d_j_;
-    if (temp_jac > 0 && temp_jac > delta)
+    if (temp_jac > 0 && temp_jac > delta) {
+      Q_g.erase(Q_g_k);
       return 1;
+    }
   }
   return 0;
 }
@@ -810,8 +900,8 @@ int TD(const AnomalyGt &Q_d_j, set<AnomalyGt> &Q_g, double delta) {
 
 //compute precision recall using technique found in
 //ACTION DETECTION USING MULTIPLE SPATIAL - TEMPORAL INTEREST POINT FEATURES 
-void computePrecisionRecall(  set<AnomalyGt> &    Q_g,
-                              set<AnomalyGt> &    Q_d,
+void computePrecisionRecall(  set<AnomalyGt>      Q_g_,
+                              set<AnomalyGt>      Q_d,
                               double         &    prec,
                               double         &    recall,
                               double              jac_prec,
@@ -819,12 +909,13 @@ void computePrecisionRecall(  set<AnomalyGt> &    Q_g,
   prec    = 0;
   recall  = 0;
   
+  set<AnomalyGt> Q_g = Q_g_;
   for (auto &Q_g_i : Q_g)
     prec += HG(Q_g_i, Q_d, jac_prec);
   prec   /= Q_g.size();
 
   for (auto &Q_d_j : Q_d)
-    recall  += TD(Q_d_j, Q_g, jac_recall);
+    recall  += TD(Q_d_j, Q_g_, jac_recall);
   recall /= Q_d.size();
 }
 
@@ -954,4 +1045,4 @@ void loadFrameList(string file, list<FrameItem> & frameList, short frame_step,
 
 
 
-
+ 

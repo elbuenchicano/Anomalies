@@ -204,7 +204,50 @@ struct Ngrams {
       return 0;
     return hashFreq_[a][b] / hashObj_[b];
   }
+  //============================================================================
+  //histogram out
+  //freq      out
+  void save2files(string &hist, string &freq) {
+    ofstream of1(hist);
+    for (auto it = hashObj_.begin(); it != hashObj_.end(); ++it)
+      of1 << it->first << "," << it->second << endl;
+    of1.close();
+    cout << "Saving hist in: " << hist << endl;
+    //..........................................................................
+    ofstream of2(freq);
+    for (auto it = hashFreq_.begin(); it != hashFreq_.end(); ++it) {
+      for (auto iti = it->second.begin(); iti != it->second.end(); ++iti)
+        of2 << it->first << "," << iti->first <<","<< iti->second <<endl;
+    }
+    cout << "Saving freq in: " << freq << endl;
+    of2.close();
+  }
+  //============================================================================
+  //histogram out
+  //freq      out
+  void load_structures(string &hist, string &freq) {
+    cout << "Loading hist from: " << hist << endl;
+    ifstream of1(hist);
+    for (string line; getline(of1, line);) {
+      auto vline = cutil_string_split(line, ',');
+      if (vline.size() > 1) 
+        hashObj_[vline[0]] = stoi(vline[1]);
+    }
+    of1.close();
 
+    //..........................................................................
+    ifstream of2(freq);
+    cout << "Loading frequency table from: " << freq << endl;
+    for (string line; getline(of2, line);) {
+      auto vline = cutil_string_split(line, ',');
+      if (vline.size() > 1) {
+        auto a = vline[0];
+        auto b = vline[1];
+        hashFreq_[a][b] = stoi(vline[2]);
+      }
+    }
+    of2.close();
+  }
 
 };
 

@@ -139,7 +139,8 @@ void AnomalyControl::train() {
   
   vector<pf>  functions{
                     trainLevel1, //0 - first training
-                    trainLevel2  //1 - second level
+                    trainLevel2, //1 - second level
+                    trainLevel4  //3 = fourth level 
                   };
 
   graphLstT graphs;
@@ -164,7 +165,8 @@ void AnomalyControl::test() {
   vector<pf>  test{
                     testLevel1,//0 first
                     testLevel2,//1 second
-                    testLevel3 //2 third
+                    testLevel3,//2 third
+                    testLevel4 //3 fourth
   };
 
   //............................................................................
@@ -216,7 +218,7 @@ void AnomalyControl::show_graph(  graphLstT   &graphs, string  &video_file,
 
   Sequence  seq(frame_step_, seq_file, video_file, rze, objects_, objects_rev_);
 
-  Scalar    RED(0, 0, 255), GREEN(0, 255, 0);
+  Scalar    RED(0, 0, 255), GREEN(0, 255, 0), BLUE(255, 0, 0);
 
   //............................................................................
   //for each frame 
@@ -234,13 +236,14 @@ void AnomalyControl::show_graph(  graphLstT   &graphs, string  &video_file,
         subname << "Subject " << ite->id_;
 
         seq.drawSub(frm.first, head->data_.list_idx_, img,
-          ite->levels_[anom_type] ? RED : GREEN,
+          //ite->levels_[anom_type] ? RED : GREEN,
+          BLUE,
           subname.str());
 
         //for each object in the specific frame
         for (auto &ob : head->objectList_) {
           seq.drawObj(frm.first, ob.first.data_.list_idx_, img,
-            ite->levels_[anom_type] ? RED : GREEN,
+            ob.first.data_.anomaly_ ? RED : GREEN,
             subname.str());
         }
         //updateing graph

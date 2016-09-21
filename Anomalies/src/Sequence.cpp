@@ -131,7 +131,7 @@ void Sequence::drawObj(int frame, int id, Mat &img, Scalar color, string msg) {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 void Sequence::drawAllSubs(int frame, Mat &img) {
-  getImage(frame, img);
+  //getImage(frame, img);
   auto it = frames_.find(frame);
   for (int i = 0; i < static_cast<int> (it->second.subjects_.size()); ++i) 
     drawSub(it->second.subjects_[i], img, Scalar(100, 150, 255),"");
@@ -147,7 +147,7 @@ void Sequence::drawSub(SubjectItem &subj, Mat &img, Scalar color, string msg){
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 void Sequence::drawAllObjs(int frame, Mat &img) {
-  getImage(frame, img);
+  //getImage(frame, img);
   auto it = frames_.find(frame);
   for (int i = 0; i < static_cast<int> (it->second.objects_.size()); ++i)
     drawObj(it->second.objects_[i], img, Scalar(0, 255, 0),"");
