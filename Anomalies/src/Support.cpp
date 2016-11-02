@@ -847,6 +847,7 @@ static void anomaly1_vectorBuild(Observed &graph, set<AnomalyGt> &ans) {
       start = false;
     }
   }
+  auto q = 1;
 }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -909,14 +910,15 @@ void computePrecisionRecall(  set<AnomalyGt>      Q_g_,
   prec    = 0;
   recall  = 0;
   
-  set<AnomalyGt> Q_g = Q_g_;
+
+  set<AnomalyGt> Q_g = Q_g_, Q_dp = Q_d, Q_dr = Q_d;
   for (auto &Q_g_i : Q_g)
-    prec += HG(Q_g_i, Q_d, jac_prec);
+    prec += HG(Q_g_i, Q_dp, jac_prec);
   prec   /= Q_g.size();
 
   for (auto &Q_d_j : Q_d)
     recall  += TD(Q_d_j, Q_g_, jac_recall);
-  recall /= Q_d.size();
+  recall /= Q_dr.size();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -948,6 +950,48 @@ void validateGraphList( list<Observed>  &graphs,
   
   for (auto &graph : graphs) 
     vectorBuild(graph, Q_d);
+
+  auto uni = 0;
+  auto notf = 0;
+  for (auto iter = Q_d.begin(); iter != Q_d.end(); iter++) {
+    if (uni == 1)
+      iter--;
+    auto iter1 = ++iter;
+    iter--;
+    if (iter1 == Q_d.end())
+      break;
+    for (; iter1 != Q_d.end(); iter1++) {
+      if (iter1->id_ == iter->id_) {
+        notf = 0;
+        break;
+      }
+      else
+        notf = 1;
+    }
+    if (notf == 1) {
+      iter1 = ++iter;
+      iter--;
+    }
+    if ((iter1->ini_ - iter->fin_) < 100 && iter->id_ == iter1->id_) {
+      AnomalyGt Anom;
+      Anom.desc_ = iter->desc_;
+      Anom.fin_ = iter1->fin_;
+      Anom.ini_ = iter->ini_;
+      Anom.id_ = iter->id_;
+      Anom.type_ = iter->type_;
+      auto aux = iter;
+      auto aux1 = iter1;
+      Q_d.erase(aux);
+      Q_d.erase(aux1);
+      Q_d.insert(Anom);
+      iter = Q_d.begin();
+      uni = 1;
+    }
+    else
+      uni = 0;
+    notf = 0;
+  }
+
 
   computePrecisionRecall( Q_g, Q_d, precision, recall, 
                           jaccard_th.first, jaccard_th.second);

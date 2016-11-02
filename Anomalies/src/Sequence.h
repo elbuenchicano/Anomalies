@@ -38,6 +38,11 @@ class Sequence {
   shared_ptr<mfVideoSequence> video_;
 
   void loadSequence();
+
+
+private:
+    
+
 public:
 
   map <int, FrameSeq> frames_;
@@ -103,6 +108,10 @@ public:
                       Mat         & /*img*/,
                       Scalar        /*color*/,
                       string        /*msg*/);
+
+
+
+  void  write2file  ( string      & /*out_file*/);
 
 };
 

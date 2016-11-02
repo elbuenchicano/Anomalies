@@ -158,6 +158,33 @@ void Sequence::drawObj(ObjectItem &obj, Mat &img, Scalar color, string msg){
   rectangle(img, obj.sw_, obj.ne_, color);
   putText(img, msg, obj.sw_, CV_FONT_HERSHEY_PLAIN, 1.0, color);
 }
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+void Sequence::write2file(string & out_file) {
+  ofstream arc(out_file);
+  for (auto & fr : frames_) {
+    arc << "Frame " << fr.first << endl;
+    for (auto & pe : fr.second.subjects_) {
+      arc << "person " 
+          << pe.sw_.x << " "
+          << pe.sw_.y << " " 
+          << pe.ne_.x - pe.sw_.x << " "
+          << pe.ne_.y - pe.sw_.y << " 0.0 "
+          << pe.h1_.x << " " << pe.h1_.y << " "
+          << pe.h2_.x << " " << pe.h2_.y << endl;
+    }
+    for (auto & ob : fr.second.objects_) {
+      arc << (*objs_i_)[ob.id_] << " "
+          << ob.sw_.x << " "
+          << ob.sw_.y << " "
+          << ob.ne_.x - ob.sw_.x << " "
+          << ob.ne_.y - ob.sw_.y << " 0.0\n";
+    }
+  }
+  arc.close();
+}
+
+
 ///############################################################################################################################################################
 ///############################################################################################################################################################
 ////////////////////////////////////////////////////////////////////////////////
