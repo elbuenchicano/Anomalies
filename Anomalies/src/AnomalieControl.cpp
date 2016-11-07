@@ -622,10 +622,11 @@ void AnomalyControl::show_hand  ( string      &       video_file,
     Point sw(cropRect.x, cropRect.y),
           ne(cropRect.x + cropRect.width, cropRect.y + cropRect.height);
 
-    cout << sw << " - " << ne << endl;
-    
-    seq.frames_[pos].objects_.push_back(ObjectItem(80,sw,ne));
+    if (sw.x && sw.y && ne.x && ne.y) {
+      cout << sw << " - " << ne << endl;
 
+      seq.frames_[pos].objects_.push_back(ObjectItem(80, sw, ne));
+    }
     char c = waitKey();
     if (c == 'q')break;
     pos += frame_step_;
