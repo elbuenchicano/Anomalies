@@ -17,7 +17,7 @@ int main(int arg, char ** argv)
 
   //string static_file = "D:/Iniciacao/Anomalies/main.yml";
   //string static_file = "e:/research/anomalies/matheus/graphs/scripts/test1.yml";
-  string static_file = "z:/tmp/anomalies/scripts/general/video_00037.yml";
+  string static_file = "z:/tmp/anomalies/scripts/general/video_00050.yml";
   //string static_file = "z:/tmp/anomalies/scripts/train_scripts/train.yml";
   //string static_file = "z:/tmp/anomalies/scripts/test_scripts/test1.yml";
 

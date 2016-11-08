@@ -679,8 +679,8 @@ void AnomalyControl::show_hand_(string      &       video_file,
     if (sw.x && sw.y && ne.x && ne.y) {
       cout << sw << " - " << ne << endl;
       Point mid = (sw + ne) / 2;
-
-      seq.frames_[pos].subjects_[0].h1_ = mid;
+      if(seq.frames_[pos].subjects_.size()>0)
+        seq.frames_[pos].subjects_[0].h1_ = mid;
     }
     char c = waitKey();
     if (c == 'q')break;
