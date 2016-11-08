@@ -54,6 +54,11 @@ class AnomalyControl
                           string      &       /*out_file*/,
                           float               /*rze*/);
 
+  void show_hand_       ( string      &       /*video_file*/,
+                          string      &       /*seq_file*/,
+                          string      &       /*out_file*/,
+                          float               /*rze*/);
+
 
   void show_loadedGraph ( string      &       /*setup_file*/,
                           graphLstT   &       /*graphs*/);

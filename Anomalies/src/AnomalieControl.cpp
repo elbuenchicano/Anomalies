@@ -130,6 +130,9 @@ void AnomalyControl::show() {
   case 2: {
     show_hand(video_file, seq_file, out_file, rze);
   }
+  case 3: {
+    show_hand_(video_file, seq_file, out_file, rze);
+  }
   default:
     break;
   }
@@ -591,6 +594,10 @@ void engine(){
   }
 
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 void AnomalyControl::show_hand  ( string      &       video_file,
                                   string      &       seq_file,
                                   string      &       out_file,
@@ -634,3 +641,50 @@ void AnomalyControl::show_hand  ( string      &       video_file,
   seq.write2file(out_file);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void AnomalyControl::show_hand_(string      &       video_file,
+  string      &       seq_file,
+  string      &       out_file,
+  float               rze) {
+
+  Mat       img;
+
+  Sequence  seq(1, seq_file, video_file, rze, objects_, objects_rev_);
+
+  int       pos = 0;
+
+  //............................................................................
+  //for such frame
+  cout << "Video frame length " << seq.frames_.size() << endl;
+  cout << "Give the star frame\n";
+  cin >> pos;
+  if (pos < 0) pos = 0;
+  while (pos <= seq.frames_.rbegin()->first) {
+    cout << "Frame number: " << pos << endl;
+    seq.getImage(pos, img);
+    //seq.drawAllObjs(pos, img);
+    seq.drawAllSubs(pos, img);
+    //imshow("Frame", img);
+
+    src = img.clone();
+    engine();
+
+
+    Point sw(cropRect.x, cropRect.y),
+          ne(cropRect.x + cropRect.width, cropRect.y + cropRect.height);
+
+    if (sw.x && sw.y && ne.x && ne.y) {
+      cout << sw << " - " << ne << endl;
+      Point mid = (sw + ne) / 2;
+
+      seq.frames_[pos].subjects_[0].h1_ = mid;
+    }
+    char c = waitKey();
+    if (c == 'q')break;
+    pos += frame_step_;
+  }
+  seq.write2file(out_file);
+}
